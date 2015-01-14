@@ -10,6 +10,12 @@ import javax.crypto.SecretKey;
 
 import myCrypto.MyCrypto;
 
+/**
+ * Gestice la centralized flat table. Contiene tutte le chiavi
+ * necessarie per la gestione del gruppo e tutti i metodi che servono
+ * a cambiare tali chiavi
+ *
+ */
 public class CentralizedFlatTable {
 	private SecretKey[][] table;	//dim is 2 * numOfBit
 	private int numOfBit; 

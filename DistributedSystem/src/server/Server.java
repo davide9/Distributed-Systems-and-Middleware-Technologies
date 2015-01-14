@@ -13,6 +13,11 @@ import javax.crypto.SecretKey;
 
 import centralizedFlatTable.CentralizedFlatTable;
 
+/**
+ * Codice per il server. Gestisce le operazioni di join e leave di un membro
+ * identificato dal suo id.
+ *
+ */
 public class Server {
 
 	private List<Integer> ids;
@@ -34,6 +39,8 @@ public class Server {
 	 * @return id of the process that have joined the group
 	 */
 	public int join(){
+		ids.add(maxId);
+		//TODO invia all'utente id le sue chiavi
 		maxId++;
 		return maxId;
 	}

@@ -7,13 +7,31 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
 
+/**
+ * Classe di supporto per criptare chiavi o un array di byte.
+ *
+ */
 public class MyCrypto {
 	
+	/**
+	 * 
+	 * @param input chiave da crittare
+	 * @param cipher il cifratore che si vuole usare
+	 * @param ciperKey la chiave per il cifratore
+	 * @return l'array di byte crittato
+	 */
 	public static byte[] encryptKey(SecretKey input, Cipher cipher, SecretKey ciperKey){
 		byte[] byteKey = input.getEncoded();
 		return encrypt(byteKey, cipher, ciperKey);
 	}
 	
+	/**
+	 * 
+	 * @param input array di byte da crittare
+	 * @param cipher il cifratore che si vuole usare
+	 * @param ciperKey la chiave per il cifratore
+	 * @return l'array di byte crittato
+	 */
 	public static byte[] encrypt(byte[] input, Cipher cipher, SecretKey ciperKey){
 		//prepare cipher
 		try {
