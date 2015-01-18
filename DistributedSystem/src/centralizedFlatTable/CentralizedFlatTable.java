@@ -94,4 +94,17 @@ public class CentralizedFlatTable {
 		return dek;
 	}
 
+	public List<SecretKey> getKeks(int id) {
+		String binary = Integer.toBinaryString(id);
+		List<SecretKey> list = new ArrayList<SecretKey>();
+		
+		for(int i = 0; i < binary.length(); i++){
+			int bitValue = Character.getNumericValue(binary.charAt(i));
+			
+			list.add(table[bitValue][numOfBit - i - 1]);
+		}
+		
+		return list;
+	}
+
 }

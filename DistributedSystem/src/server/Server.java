@@ -11,6 +11,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
+import transport.TransportServer;
 import centralizedFlatTable.CentralizedFlatTable;
 
 /**
@@ -23,26 +24,29 @@ public class Server {
 	private List<Integer> ids;
 	private CentralizedFlatTable table;
 	private int numOfBit = 3;
-	private int maxId;
 	public static String ALGORITHM = "AES";
+	
+
+	
+	private TransportServer transport;
 
 	
 	
 	public Server(){
-		maxId = 0;
 		table = new CentralizedFlatTable(numOfBit, ALGORITHM);
 		ids = new ArrayList<Integer>();
+		transport = new TransportServer(this);
+		transport.setUp();
 	}
 
 	/**
 	 * Assign a new id to the process that have joined the group, and add it in the ids list
 	 * @return id of the process that have joined the group
 	 */
-	public int join(){
-		ids.add(maxId);
-		//TODO invia all'utente id le sue chiavi
-		maxId++;
-		return maxId;
+	public void join(int id){
+		ids.add(id);
+		
+		transport.notifyKey(id, table.getDek(), table.getKeks(id));
 	}
 	
 	public void leave(int id){
