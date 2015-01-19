@@ -27,11 +27,7 @@ public class Client {
 		try {
 			System.out.println("waiting....");
 			while(true){
-				try{
-					transport.listen();
-				}catch(EOFException e){
-					
-				}
+				transport.listen();
 			}
 			
 		} catch (UnknownHostException e) {

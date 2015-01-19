@@ -88,7 +88,7 @@ public class TransportClient {
 		}
 	}
 
-	public void listen() throws UnknownHostException, EOFException {
+	public void listen() throws UnknownHostException {
 		if(serverSocket != null){
 			try {
 
