@@ -1,11 +1,14 @@
 package myCrypto;
 
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
@@ -14,6 +17,7 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class MyCrypto {
 	
+	private static String IV = "0123456789zxcvbn";
 	/**
 	 * 
 	 * @param input chiave da crittare
@@ -54,10 +58,17 @@ public class MyCrypto {
 		return encryption;
 	}
 	
-	public static byte[] dencrypt(byte[] input, Cipher cipher, SecretKey ciperKey){
+	public static byte[] dencrypt(byte[] input, Cipher cipher, SecretKey ciperKey) throws InvalidKeyException{
 		//prepare cipher
 		try {
-			cipher.init(Cipher.DECRYPT_MODE, ciperKey);
+			String IV = "0123456789zxcvbn";
+			try {
+				cipher.init(Cipher.DECRYPT_MODE, ciperKey, new IvParameterSpec(IV.getBytes("UTF-8")));
+			} catch (InvalidAlgorithmParameterException e) {
+				e.printStackTrace();
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
 		} catch (InvalidKeyException e) {
 			e.printStackTrace();
 		}
@@ -75,7 +86,7 @@ public class MyCrypto {
 		return dencryption;
 	}
 	
-	public static SecretKey dencryptKey(byte[] input, Cipher cipher, SecretKey ciperKey){
+	public static SecretKey dencryptKey(byte[] input, Cipher cipher, SecretKey ciperKey) throws InvalidKeyException{
 		byte[] byteKey = dencrypt(input, cipher, ciperKey);
 		SecretKey key = new SecretKeySpec(byteKey, 0, byteKey.length, server.Server.ALGORITHM);
 		return key;

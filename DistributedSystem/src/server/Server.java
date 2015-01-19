@@ -27,8 +27,8 @@ public class Server {
 
 	
 	public final static int numOfBit = 3;
-	public static String ALGORITHM = "DES";
-	public static String CHIPER_TRANSFORMATION = "DES/CBC/PKCS5Padding";
+	public static String ALGORITHM = "AES";
+	public static String CHIPER_TRANSFORMATION = "AES/CBC/PKCS5Padding";
 	
 
 	public Server(){
@@ -69,6 +69,7 @@ public class Server {
 	private void manageDekChanges(Cipher cipher, int id) {
 
 		SecretKey newDek = table.changeDek();
+		System.out.println("new Dek is " + newDek);
 		SecretKey[] keks = table.getKeksExcept(id);
 		
 		//crypt dek with keks and broadcast

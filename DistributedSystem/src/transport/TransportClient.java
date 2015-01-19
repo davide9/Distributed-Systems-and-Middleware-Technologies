@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,7 +94,7 @@ public class TransportClient {
 			try {
 
 				//getting index of the key to use
-				int index = inStreamServer.readInt();
+				int index = (Integer) inStreamServer.readObject();
 				System.out.println("Getting the index of the key to use....");
 				//reciving dek encrypted
 				byte[] encryption = (byte[]) inStreamServer.readObject();
@@ -106,9 +107,11 @@ public class TransportClient {
 					e.printStackTrace();
 				} catch (NoSuchPaddingException e) {
 					e.printStackTrace();
+				} catch (InvalidKeyException e){
+					System.out.println("chiave sbagliata");
 				}
 			} catch (IOException | ClassNotFoundException e) {
-				//e.printStackTrace();
+				e.printStackTrace();
 			}
 		}
 		else{

@@ -4,11 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +18,7 @@ import server.Server;
 public class TransportServer {
 	
 	private Map<Integer, Socket> clientMapping;
+	private Map<Integer, ObjectOutputStream> clientOutputStream;
 	private Map<InetAddress, Integer> ipMapping;
 	private Server myServer;
 	ServerSocket serverSocket;
@@ -39,6 +38,7 @@ public class TransportServer {
 		maxId = 0;
 		clientMapping = new HashMap<Integer, Socket>();
 		ipMapping = new HashMap<InetAddress, Integer>();
+		clientOutputStream = new HashMap<Integer, ObjectOutputStream>();
 	}
 
 	public void setUp(){
@@ -66,12 +66,8 @@ public class TransportServer {
 	
 	private void handleRequest(Socket clientSocket) {
 		
-		PrintWriter out = null;
 		BufferedReader in = null;
 	    try {
-			out =
-				new PrintWriter(clientSocket.getOutputStream(), true);
-			
 		    in = new BufferedReader(
 		        new InputStreamReader(clientSocket.getInputStream()));
 		    
@@ -126,11 +122,9 @@ public class TransportServer {
 			e.printStackTrace();
 		}
 	    
+	    clientOutputStream.put(id, outputStream);
 	    
-	    try {/*verificare
-	    	System.out.println("Sending id");
-	    	outputStream.writeInt(id);
-	    	*/
+	    try {
 	    	System.out.println("Sending data to client: " + clientSocket.getRemoteSocketAddress());
 	    	System.out.println("Sending Dek....");
 			outputStream.writeObject(dek);
@@ -153,21 +147,11 @@ public class TransportServer {
 		for (Integer id : ids) {
 			Socket clientSocket = clientMapping.get(id);
 			System.out.println("Sending new keys to " + clientSocket.getRemoteSocketAddress());
-			ObjectOutputStream outputStream = null;
-		    try {
-		    	outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		    
+			ObjectOutputStream outputStream = clientOutputStream.get(id);
 		    
 		    try {
-		    	/*verificare
-		    	System.out.println("Sending id");
-		    	outputStream.writeInt(id);
-		    	*/
 		    	System.out.println("Index used to encrypt is " + index);
-				outputStream.writeInt(index);
+				outputStream.writeObject(index);
 				
 				System.out.println("Sending dek encrypted...");
 				outputStream.writeObject(encryption);
