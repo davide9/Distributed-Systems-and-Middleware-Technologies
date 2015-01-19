@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +20,7 @@ import server.Server;
 public class TransportServer {
 	
 	private Map<Integer, Socket> clientMapping;
-	private Map<String, Integer> ipMapping;
+	private Map<InetAddress, Integer> ipMapping;
 	private Server myServer;
 	ServerSocket serverSocket;
 	
@@ -37,7 +38,7 @@ public class TransportServer {
 		myServer = server;
 		maxId = 0;
 		clientMapping = new HashMap<Integer, Socket>();
-		ipMapping = new HashMap<String, Integer>();
+		ipMapping = new HashMap<InetAddress, Integer>();
 	}
 
 	public void setUp(){
@@ -92,12 +93,13 @@ public class TransportServer {
 					id = maxId;
 					maxId++;
 					clientMapping.put(id, clientSocket);
-					ipMapping.put(clientSocket.getRemoteSocketAddress().toString(), id);
+					ipMapping.put(clientSocket.getInetAddress(), id);
 					//call the join function
 					myServer.join(id);
 					break;
 				case LEAVE:
-					id = ipMapping.get(clientSocket.getRemoteSocketAddress().toString());
+					System.out.println("request from " + clientSocket.getRemoteSocketAddress().toString());
+					id = ipMapping.get(clientSocket.getInetAddress());
 					System.out.println("Request for leaving by id " +id );
 					myServer.leave(id);
 					
@@ -150,7 +152,7 @@ public class TransportServer {
 	public void sendDekEncrypted(byte[] encryption, List<Integer> ids, int index) {
 		for (Integer id : ids) {
 			Socket clientSocket = clientMapping.get(id);
-			
+			System.out.println("Sending new keys to " + clientSocket.getRemoteSocketAddress());
 			ObjectOutputStream outputStream = null;
 		    try {
 		    	outputStream = new ObjectOutputStream(clientSocket.getOutputStream());

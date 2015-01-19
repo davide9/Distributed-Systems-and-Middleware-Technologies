@@ -27,7 +27,8 @@ public class Server {
 
 	
 	public final static int numOfBit = 3;
-	public static String ALGORITHM = "AES";
+	public static String ALGORITHM = "DES";
+	public static String CHIPER_TRANSFORMATION = "DES/CBC/PKCS5Padding";
 	
 
 	public Server(){
@@ -50,19 +51,18 @@ public class Server {
 	public void leave(int id){
 		//get the cipher
 		ids.remove(id);
-		Cipher cipher = null; 
+		Cipher cipher; 
 		try {
-			Cipher chiper = Cipher.getInstance(ALGORITHM);
+			cipher = Cipher.getInstance(CHIPER_TRANSFORMATION);
+			
+			manageDekChanges(cipher, id);
+			manageKekChanges(cipher, id);
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		} catch (NoSuchPaddingException e) {
 			e.printStackTrace();
 		}
-		
-		manageDekChanges(cipher, id);
-		
-		manageKekChanges(cipher, id);
-		
+
 	}
 	
 

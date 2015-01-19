@@ -25,6 +25,7 @@ public class Client {
 	
 	public void listen(){
 		try {
+			System.out.println("waiting....");
 			while(true){
 				try{
 					transport.listen();

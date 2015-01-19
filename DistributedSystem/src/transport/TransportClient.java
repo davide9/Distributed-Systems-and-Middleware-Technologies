@@ -78,14 +78,14 @@ public class TransportClient {
 
 	public void notifyServerLeave() throws UnknownHostException{
 		System.out.println("trying to leave");
-		if(serverSocket != null){
+		try {
+			serverSocket = new Socket(serverName, TransportServer.SERVER_PORT);
+			out = new PrintWriter(serverSocket.getOutputStream(), true);
 			out.println(TransportServer.LEAVE);
 			System.out.println("left");
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		else{
-			throw new UnknownHostException();
-		}
-
 	}
 
 	public void listen() throws UnknownHostException, EOFException {
@@ -100,7 +100,7 @@ public class TransportClient {
 				
 				SecretKey keyToUse = myClient.getKek(index);
 				try {
-					SecretKey newDek = MyCrypto.dencryptKey(encryption, Cipher.getInstance(server.Server.ALGORITHM), keyToUse);
+					SecretKey newDek = MyCrypto.dencryptKey(encryption, Cipher.getInstance(server.Server.CHIPER_TRANSFORMATION), keyToUse);
 					myClient.setDek(newDek);
 				} catch (NoSuchAlgorithmException e) {
 					e.printStackTrace();
