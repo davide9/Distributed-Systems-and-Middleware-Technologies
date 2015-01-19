@@ -23,15 +23,13 @@ public class Server {
 
 	private List<Integer> ids;
 	private CentralizedFlatTable table;
-	private int numOfBit = 3;
-	public static String ALGORITHM = "AES";
-	
-
-	
 	private TransportServer transport;
 
 	
+	public final static int numOfBit = 3;
+	public static String ALGORITHM = "AES";
 	
+
 	public Server(){
 		table = new CentralizedFlatTable(numOfBit, ALGORITHM);
 		ids = new ArrayList<Integer>();
@@ -51,6 +49,7 @@ public class Server {
 	
 	public void leave(int id){
 		//get the cipher
+		ids.remove(id);
 		Cipher cipher = null; 
 		try {
 			Cipher chiper = Cipher.getInstance(ALGORITHM);
@@ -70,21 +69,22 @@ public class Server {
 	private void manageDekChanges(Cipher cipher, int id) {
 
 		SecretKey newDek = table.changeDek();
-		List<SecretKey> keks = table.getKeksExcept(id);
+		SecretKey[] keks = table.getKeksExcept(id);
 		
 		//crypt dek with keks and broadcast
 		byte[] dekByte = newDek.getEncoded();
 		
-		for (SecretKey kek : keks) {
+		for (int i = 0; i < keks.length; i++) {
 			//prepare cipher
 			try {
-				cipher.init(Cipher.ENCRYPT_MODE, kek);
+				cipher.init(Cipher.ENCRYPT_MODE, keks[i]);
 			} catch (InvalidKeyException e) {
 				e.printStackTrace();
 			}
 			
 			//encrypt
 			byte[] encryption = null;
+			
 			try {
 				encryption = cipher.doFinal(dekByte);
 			} catch (IllegalBlockSizeException e) {
@@ -93,7 +93,7 @@ public class Server {
 				e.printStackTrace();
 			}
 			
-			broadcastDek(encryption);
+			broadcastDek(encryption, i);
 		}
 		
 	}
@@ -126,9 +126,13 @@ public class Server {
 		
 	}
 	
-	
-	private void broadcastDek(byte[] encryption) {
-		// TODO Auto-generated method stub	
+	/**
+	 * 
+	 * @param encryption dek encrypted
+	 * @param i index of the kek used to encrypt the dek
+	 */
+	private void broadcastDek(byte[] encryption, int i) {
+		transport.sendDekEncrypted(encryption, ids, i);
 	}
 	
 	private void broadcastKek(byte[] encryption) {

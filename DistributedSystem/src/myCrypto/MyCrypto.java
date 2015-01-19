@@ -6,6 +6,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Classe di supporto per criptare chiavi o un array di byte.
@@ -52,5 +53,34 @@ public class MyCrypto {
 		
 		return encryption;
 	}
+	
+	public static byte[] dencrypt(byte[] input, Cipher cipher, SecretKey ciperKey){
+		//prepare cipher
+		try {
+			cipher.init(Cipher.DECRYPT_MODE, ciperKey);
+		} catch (InvalidKeyException e) {
+			e.printStackTrace();
+		}
+		
+		byte[] dencryption = null;
+		
+		try {
+			dencryption = cipher.doFinal(input);
+		} catch (IllegalBlockSizeException e) {
+			e.printStackTrace();
+		} catch (BadPaddingException e) {
+			e.printStackTrace();
+		}
+		
+		return dencryption;
+	}
+	
+	public static SecretKey dencryptKey(byte[] input, Cipher cipher, SecretKey ciperKey){
+		byte[] byteKey = dencrypt(input, cipher, ciperKey);
+		SecretKey key = new SecretKeySpec(byteKey, 0, byteKey.length, server.Server.ALGORITHM);
+		return key;
+	}
+
+		
 
 }

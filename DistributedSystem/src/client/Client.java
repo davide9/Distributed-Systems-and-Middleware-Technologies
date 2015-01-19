@@ -1,5 +1,6 @@
 package client;
 
+import java.io.EOFException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,16 +11,31 @@ import transport.TransportClient;
 
 public class Client {
 	private SecretKey dek;
-	private List<SecretKey> keks;
+	private SecretKey[] keks;
 	private TransportClient transport;
 	
 	public Client(){
-		keks = new ArrayList<SecretKey>();
+		keks = new SecretKey[server.Server.numOfBit];
 		transport = new TransportClient(this);
 	}
 
 	public void join(){
 		transport.notifyServerJoin();
+	}
+	
+	public void listen(){
+		try {
+			while(true){
+				try{
+					transport.listen();
+				}catch(EOFException e){
+					
+				}
+			}
+			
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}	
 	}
 	
 	public void leave(){
@@ -36,13 +52,18 @@ public class Client {
 		System.out.println(dek.toString());
 	}
 	
-	public void setKeks(List<SecretKey> keks){
+	public void setKeks(SecretKey[] keks){
 		System.out.println("Setting kek keys....");
-		this.keks.clear();
-		for (SecretKey kek : keks) {
-			System.out.println(kek.toString());
-			this.keks.add(kek);
+		for(int i = 0; i < this.keks.length; i++){
+			this.keks[i] = keks[i];
 		}
-		
+	}
+	
+	public void setKek(SecretKey kek, int index){
+		this.keks[index] = kek;
+	}
+	
+	public SecretKey getKek(int index){
+		return keks[index];
 	}
 }

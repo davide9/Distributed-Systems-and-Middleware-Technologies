@@ -1,12 +1,13 @@
 package client;
 
-public class ClientMain {
+public class ClientMain2 {
 
 	public static void main(String[] args) {
 		Client client1 = new Client();
-		System.out.println("Client 1 is going to join...");
+		System.out.println("Client 2 is going to join...");
 		client1.join();
-		client1.listen();
+		System.out.println("client 2 is leaving.....");
+		client1.leave();
 		/*
 		Client client2 = new Client();
 		System.out.println("Client 2 is going to join...");
@@ -18,8 +19,7 @@ public class ClientMain {
 		
 		client1.leave();
 		*/
-		while(true){
-		}
+
 	}
 
 }

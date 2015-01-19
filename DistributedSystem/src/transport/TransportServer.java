@@ -50,24 +50,20 @@ public class TransportServer {
 			System.out.println("Server name: " + serverSocket.getInetAddress().getHostName());
 			clientSocket = serverSocket.accept();
 			
-		    PrintWriter out =
-		        new PrintWriter(clientSocket.getOutputStream(), true);
-		    
-		    BufferedReader in = new BufferedReader(
-		        new InputStreamReader(clientSocket.getInputStream()));
-		    
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	    while(true){
 			try {
 				handleRequest(clientSocket);
+				System.out.println("waiting new request");
 				clientSocket = serverSocket.accept();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 	    }
 	}
+	
 	private void handleRequest(Socket clientSocket) {
 		
 		PrintWriter out = null;
@@ -103,46 +99,83 @@ public class TransportServer {
 					break;
 				case LEAVE:
 					id = ipMapping.get(clientSocket.getRemoteSocketAddress().toString());
+					System.out.println("Request for leaving by id " +id );
 					myServer.leave(id);
+					
+					ipMapping.remove(id);
+					
+					clientMapping.get(id).close();
+					clientMapping.remove(id);
 					break;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
 	}
 
-	public void notifyKey(int id, SecretKey dek, List<SecretKey> keks) {
+	public void notifyKey(int id, SecretKey dek, SecretKey[] keks) {
 		Socket clientSocket = null;
 		clientSocket = clientMapping.get(id);
 		
-		PrintWriter out = null;
-		BufferedReader in = null;
+		ObjectOutputStream outputStream = null;
 	    try {
-			out =
-				new PrintWriter(clientSocket.getOutputStream(), true);
-			
-		    in = new BufferedReader(
-		        new InputStreamReader(clientSocket.getInputStream()));
-		    
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	    System.out.println("Sending Dek....");
-	    ObjectOutputStream outputStream = null;
-	    try {
-			outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
-			outputStream.writeObject(dek);
-			System.out.println("Sending "+ keks.size() + " keys...");
-			out.println(keks.size());
-			
-			System.out.println("Sending list of kek");
-		    for (SecretKey kek : keks) {
-			    outputStream.writeObject(kek);
-			}
+	    	outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	    
+	    
+	    try {/*verificare
+	    	System.out.println("Sending id");
+	    	outputStream.writeInt(id);
+	    	*/
+	    	System.out.println("Sending data to client: " + clientSocket.getRemoteSocketAddress());
+	    	System.out.println("Sending Dek....");
+			outputStream.writeObject(dek);
+			
+			System.out.println("Sending "+ keks.length + " keys...");
+			outputStream.writeInt(keks.length);
+			
+		    for (SecretKey kek : keks) {
+			    outputStream.writeObject(kek);
+			}
+			System.out.println("keks sent");
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	    
+	}
+
+	public void sendDekEncrypted(byte[] encryption, List<Integer> ids, int index) {
+		for (Integer id : ids) {
+			Socket clientSocket = clientMapping.get(id);
+			
+			ObjectOutputStream outputStream = null;
+		    try {
+		    	outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		    
+		    
+		    try {
+		    	/*verificare
+		    	System.out.println("Sending id");
+		    	outputStream.writeInt(id);
+		    	*/
+		    	System.out.println("Index used to encrypt is " + index);
+				outputStream.writeInt(index);
+				
+				System.out.println("Sending dek encrypted...");
+				outputStream.writeObject(encryption);
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
 	}
 	
 }

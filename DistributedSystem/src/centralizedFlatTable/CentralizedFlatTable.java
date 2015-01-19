@@ -51,7 +51,7 @@ public class CentralizedFlatTable {
 	 * @param id the id of the member that will leave
 	 */
 	public List<byte[]> changeKek(Cipher cipher, int id){
-		String binary = Integer.toBinaryString(id);
+		String binary = binarizeInteger(id);
 		List<byte[]> list = new ArrayList<byte[]>();
 		
 		for(int i = 0; i < binary.length(); i++){
@@ -70,20 +70,20 @@ public class CentralizedFlatTable {
 		return dek;
 	}
 
-	public List<SecretKey> getKeksExcept(int id) {
-		String binary = Integer.toBinaryString(id);
-		List<SecretKey> keks = new ArrayList<SecretKey>();;
-		
-		for(int i = 0; i < 2; i++){
-			for(int j = 0; j < this.numOfBit; j++){
-				for(int k = binary.length()-1; i >= 0 ; i++){
-					int bitValue = Character.getNumericValue(binary.charAt(i));
-					//if the bit position is different or bit value is different add the kek
-					if(k != j || i != bitValue){
-						keks.add(table[i][j]);
-					}
-				}
-			}
+	public SecretKey[] getKeksExcept(int id) {
+		String binary = binarizeInteger(id);
+		SecretKey[] keks = new SecretKey[numOfBit];;
+		for(int i = 0; i < binary.length(); i++){
+			int bitValue = Character.getNumericValue(binary.charAt(i));
+			
+			//toggle bit value
+			if(bitValue == 1)
+				bitValue = 0;
+			else
+				bitValue = 1;
+			
+			keks[numOfBit - i - 1] = table[bitValue][numOfBit - i - 1];
+			
 		}
 		
 		return keks;
@@ -94,17 +94,32 @@ public class CentralizedFlatTable {
 		return dek;
 	}
 
-	public List<SecretKey> getKeks(int id) {
-		String binary = Integer.toBinaryString(id);
-		List<SecretKey> list = new ArrayList<SecretKey>();
+	public SecretKey[] getKeks(int id) {
+		String binary = binarizeInteger(id);
+		System.out.println("Getting keks for id: " + binary);
+		SecretKey[] keks = new SecretKey[binary.length()];
 		
 		for(int i = 0; i < binary.length(); i++){
 			int bitValue = Character.getNumericValue(binary.charAt(i));
-			
-			list.add(table[bitValue][numOfBit - i - 1]);
+			keks[numOfBit - i - 1] = table[bitValue][numOfBit - i - 1];
 		}
 		
-		return list;
+		return keks;
+	}
+	
+	private String binarizeInteger(int id) {
+		String binary = Integer.toBinaryString(id);
+		//add zeros
+		if(binary.length() < numOfBit){
+			int numPadding = numOfBit - binary.length();
+			String zero  = "0";
+			String temp = binary;
+			for(int i = 0; i < numPadding; i++){
+				temp = zero.concat(temp);
+			}
+			binary = temp;
+		}
+		return binary;
 	}
 
 }

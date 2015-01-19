@@ -1,23 +1,30 @@
 package transport;
 
 import java.io.BufferedReader;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
+import myCrypto.MyCrypto;
 import client.Client;
 
 public class TransportClient {
 	private Socket serverSocket;
 	private String serverName;
 	private Client myClient;
+	private ObjectInputStream inStreamServer;
+	private PrintWriter out;
 	
 	protected final static int CLIENT_PORT = 7777;
 
@@ -25,16 +32,14 @@ public class TransportClient {
 		myClient = client;
 		serverSocket = null;
 		serverName = new String("0.0.0.0");
+		inStreamServer = null;
+		out = null;
 	}
 
 	public void notifyServerJoin() {
-		PrintWriter out = null;
-		BufferedReader in = null;
 		try {
 			serverSocket = new Socket(serverName, TransportServer.SERVER_PORT);
 			out = new PrintWriter(serverSocket.getOutputStream(), true);
-			in = new BufferedReader(
-			        new InputStreamReader(serverSocket.getInputStream()));
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -42,24 +47,29 @@ public class TransportClient {
 		}
 		System.out.println("joining the server.....");
 		out.println(TransportServer.JOIN);
-		ObjectInputStream inStream = null;
+		
 		try {
-			inStream = new ObjectInputStream(serverSocket.getInputStream());
+			inStreamServer = new ObjectInputStream(serverSocket.getInputStream());
+
 			//reciving dek
-			myClient.setDek((SecretKey) inStream.readObject());
-			List<SecretKey> list = new ArrayList<SecretKey>();
+			myClient.setDek((SecretKey) inStreamServer.readObject());
 
 			//reciving keks
-			int keksSize = Integer.parseInt(in.readLine());
-			System.out.println("I should received " + keksSize + " keys");
-			for(int i = 0; i < keksSize; i++){
-				System.out.println("I'm going to received kek number " + i);
-				SecretKey kek = (SecretKey) inStream.readObject();
-				list.add(kek);
-				System.out.println("Receved kek " + i + "/" + keksSize);
+			int keksSize = (int) inStreamServer.readInt();
+			if(keksSize != server.Server.numOfBit){
+				throw new Error();
+			}else{
+				SecretKey[] keks = new SecretKey[server.Server.numOfBit];
+				System.out.println("I should received " + keksSize + " keys");
+				for(int i = 0; i < keksSize; i++){
+					System.out.println("I'm going to received kek number " + i);
+					SecretKey kek = (SecretKey) inStreamServer.readObject();
+					keks[i] = kek;
+					System.out.println("Receved kek " + i);
+				}
+				myClient.setKeks(keks);
 			}
-			System.out.println("out of while");
-			myClient.setKeks(list);
+			
 		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -67,24 +77,43 @@ public class TransportClient {
 	}
 
 	public void notifyServerLeave() throws UnknownHostException{
+		System.out.println("trying to leave");
 		if(serverSocket != null){
-			PrintWriter out = null;
-			BufferedReader in = null;
-			try {
-				out = new PrintWriter(serverSocket.getOutputStream(), true);
-				in = new BufferedReader(
-				        new InputStreamReader(serverSocket.getInputStream()));
-			} catch (UnknownHostException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			
 			out.println(TransportServer.LEAVE);
+			System.out.println("left");
 		}
 		else{
 			throw new UnknownHostException();
 		}
 
+	}
+
+	public void listen() throws UnknownHostException, EOFException {
+		if(serverSocket != null){
+			try {
+
+				//getting index of the key to use
+				int index = inStreamServer.readInt();
+				System.out.println("Getting the index of the key to use....");
+				//reciving dek encrypted
+				byte[] encryption = (byte[]) inStreamServer.readObject();
+				
+				SecretKey keyToUse = myClient.getKek(index);
+				try {
+					SecretKey newDek = MyCrypto.dencryptKey(encryption, Cipher.getInstance(server.Server.ALGORITHM), keyToUse);
+					myClient.setDek(newDek);
+				} catch (NoSuchAlgorithmException e) {
+					e.printStackTrace();
+				} catch (NoSuchPaddingException e) {
+					e.printStackTrace();
+				}
+			} catch (IOException | ClassNotFoundException e) {
+				//e.printStackTrace();
+			}
+		}
+		else{
+			throw new UnknownHostException();
+		}
+		
 	}
 }
