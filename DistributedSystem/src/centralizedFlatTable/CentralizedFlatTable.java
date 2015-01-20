@@ -8,6 +8,7 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import server.Server;
 import myCrypto.MyCrypto;
 
 /**
@@ -54,7 +55,7 @@ public class CentralizedFlatTable {
 		String binary = binarizeInteger(id);
 		List<byte[]> list = new ArrayList<byte[]>();
 		
-		for(int i = 0; i < binary.length(); i++){
+		for(int i = binary.length()-1; i >= 0; i--){
 			int bitValue = Character.getNumericValue(binary.charAt(i));
 			SecretKey oldKek = table[bitValue][numOfBit - i - 1];
 			table[bitValue][numOfBit - i - 1] = gen.generateKey();
@@ -107,11 +108,11 @@ public class CentralizedFlatTable {
 		return keks;
 	}
 	
-	private String binarizeInteger(int id) {
+	private static String binarizeInteger(int id) {
 		String binary = Integer.toBinaryString(id);
 		//add zeros
-		if(binary.length() < numOfBit){
-			int numPadding = numOfBit - binary.length();
+		if(binary.length() < Server.numOfBit){
+			int numPadding = Server.numOfBit - binary.length();
 			String zero  = "0";
 			String temp = binary;
 			for(int i = 0; i < numPadding; i++){
@@ -122,4 +123,34 @@ public class CentralizedFlatTable {
 		return binary;
 	}
 
+	public static boolean isCommonKey(int id1, int id2, int index){
+		String binary1 = binarizeInteger(id1);
+		
+		String binary2 = binarizeInteger(id2);
+		
+		if(binary1.charAt(binary1.length() - 1 - index) == binary2.charAt(binary2.length() - 1 - index)){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+
+	public static int howManyInCommon(Integer id1, int id2) {
+		String binary1 = binarizeInteger(id1);
+		
+		String binary2 = binarizeInteger(id2);
+		
+		int count = 0;
+		for(int i = 0; i < binary1.length(); i++){
+			if(binary1.charAt(i) == binary2.charAt(i)){
+				count++;
+			}
+		}
+		return count;
+	}
+
+	public SecretKey getKek(int index, int bitValue) {
+		return this.table[bitValue][index];
+	}
 }

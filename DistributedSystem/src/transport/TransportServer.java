@@ -7,12 +7,19 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.Charset;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
+import myCrypto.MyCrypto;
+import centralizedFlatTable.CentralizedFlatTable;
 import server.Server;
 
 public class TransportServer {
@@ -75,7 +82,7 @@ public class TransportServer {
 			e.printStackTrace();
 		}
 
-		String inputLine, outputLine;
+		String inputLine;
 		
 		//try to write in the stream
 		try {
@@ -143,24 +150,71 @@ public class TransportServer {
 	    
 	}
 
-	public void sendDekEncrypted(byte[] encryption, List<Integer> ids, int index) {
+	/**
+	 * 
+	 * @param encryption
+	 * @param ids
+	 * @param index
+	 * @param leavingId
+	 */
+	public void sendDekEncrypted(byte[] encryption, List<Integer> ids, int index, int leavingId) {
 		for (Integer id : ids) {
-			Socket clientSocket = clientMapping.get(id);
-			System.out.println("Sending new keys to " + clientSocket.getRemoteSocketAddress());
-			ObjectOutputStream outputStream = clientOutputStream.get(id);
-		    
-		    try {
-		    	System.out.println("Index used to encrypt is " + index);
-				outputStream.writeObject(index);
-				
-				System.out.println("Sending dek encrypted...");
-				outputStream.writeObject(encryption);
+			
+			if(CentralizedFlatTable.isCommonKey(id, leavingId, index)){
+				continue;
+			}
+			
+			System.out.println("Sending new dek...");
+			sendKeyEncripted(encryption, id, index);
+		}
+	}
+	
+	public void sendKekEncrypted(byte[] encryption, List<Integer> ids, int index, int leavingId) {
+		for (Integer id : ids) {
+			
+			if( ! CentralizedFlatTable.isCommonKey(id, leavingId, index)){
+				continue;
+			}
+			
+			System.out.println("Sending new kek...");
+			sendKeyEncripted(encryption, id, index);
+		}
+	}
+	
+	private void sendKeyEncripted(byte[] encryption, int id, int index){
+		//otherwise send the data
+		Socket clientSocket = clientMapping.get(id);
+		System.out.println("Sending to " + clientSocket.getRemoteSocketAddress());
+		ObjectOutputStream outputStream = clientOutputStream.get(id);
+	    
+	    try {
+	    	//sending the index of the key used to encrypt
+	    	System.out.println("Index used to encrypt is " + index);
+			outputStream.writeObject(index);
+			
+			//sending the key
+			outputStream.writeObject(encryption);
+	    	
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
+	public void setKekSending(List<Integer> ids, int leavingId) {
+		//tells each client how many kek is going to received
+		for (Integer id : ids) {
+			
+			Socket clientSocket = clientMapping.get(id);
+			ObjectOutputStream outputStream = clientOutputStream.get(id);
+			
+			System.out.println("number of keks to change = " + CentralizedFlatTable.howManyInCommon(id, leavingId));
+			
+			try {
+				outputStream.writeObject(CentralizedFlatTable.howManyInCommon(id, leavingId));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-		
 	}
 	
 }

@@ -92,24 +92,47 @@ public class TransportClient {
 	public void listen() throws UnknownHostException {
 		if(serverSocket != null){
 			try {
-
-				//getting index of the key to use
-				int index = (Integer) inStreamServer.readObject();
-				System.out.println("Getting the index of the key to use....");
-				//reciving dek encrypted
-				byte[] encryption = (byte[]) inStreamServer.readObject();
+				Cipher cipher = null;
 				
-				SecretKey keyToUse = myClient.getKek(index);
 				try {
-					SecretKey newDek = MyCrypto.dencryptKey(encryption, Cipher.getInstance(server.Server.CHIPER_TRANSFORMATION), keyToUse);
-					myClient.setDek(newDek);
+					cipher = Cipher.getInstance(server.Server.CHIPER_TRANSFORMATION);
 				} catch (NoSuchAlgorithmException e) {
 					e.printStackTrace();
 				} catch (NoSuchPaddingException e) {
 					e.printStackTrace();
-				} catch (InvalidKeyException e){
-					System.out.println("chiave sbagliata");
 				}
+				
+				//getting index of the key to use
+				int index = (Integer) inStreamServer.readObject();
+				System.out.println("Getting the index of the key to use...." + index);
+				
+				//receiving dek encrypted
+				byte[] encryption = (byte[]) inStreamServer.readObject();
+				
+				SecretKey keyToUse = myClient.getKek(index);
+				SecretKey newDek = MyCrypto.dencryptKey(encryption, cipher, keyToUse);
+				myClient.setDek(newDek);
+				
+				//received number of kek to change
+				int numOfKeyToReceive = (Integer) inStreamServer.readObject();
+				System.out.println("I'm going to receive " + numOfKeyToReceive + " keks...");
+				
+				for(int i = 0; i < numOfKeyToReceive; i++){
+					//receive index of kek to change
+					index = (Integer) inStreamServer.readObject();
+					
+					//receive kek encrypted
+					encryption = (byte[]) inStreamServer.readObject();
+					
+					byte[] firstDecription = MyCrypto.dencrypt(encryption, cipher, myClient.getDek());
+					
+					SecretKey newKek = MyCrypto.dencryptKey(firstDecription, cipher, myClient.getKek(index));
+					
+					myClient.setKek(newKek, index);
+					
+					System.out.println("Received key with index: " + index + " " + i + "/" + numOfKeyToReceive);
+				}
+				
 			} catch (IOException | ClassNotFoundException e) {
 				e.printStackTrace();
 			}

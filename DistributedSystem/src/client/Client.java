@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 import transport.TransportClient;
 
@@ -46,7 +47,7 @@ public class Client {
 	public void setDek(SecretKey newDek){
 		System.out.println("Setting dek key....");
 		dek = newDek;
-		System.out.println(dek.toString());
+		System.out.println(dek);
 	}
 	
 	public void setKeks(SecretKey[] keks){
@@ -62,5 +63,9 @@ public class Client {
 	
 	public SecretKey getKek(int index){
 		return keks[index];
+	}
+
+	public SecretKey getDek() {
+		return dek;
 	}
 }

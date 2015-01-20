@@ -1,5 +1,8 @@
 package server;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -10,7 +13,10 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
+import myCrypto.MyCrypto;
 import transport.TransportServer;
 import centralizedFlatTable.CentralizedFlatTable;
 
@@ -35,7 +41,24 @@ public class Server {
 		table = new CentralizedFlatTable(numOfBit, ALGORITHM);
 		ids = new ArrayList<Integer>();
 		transport = new TransportServer(this);
+		/*
+		SecretKey key = table.getDek();
+		byte[] prova = key.getEncoded();
+		
+		SecretKey key2 = new SecretKeySpec(prova,ALGORITHM);
+		
+		if(key==key2){
+			System.out.println("UGUALI");
+		}
+		else{
+			System.out.println("DIVERSE");
+		}
+		*/
 		transport.setUp();
+		
+		
+		
+		
 	}
 
 	/**
@@ -50,6 +73,7 @@ public class Server {
 	
 	public void leave(int id){
 		//get the cipher
+		//TODO handle remove of id
 		ids.remove(id);
 		Cipher cipher; 
 		try {
@@ -78,7 +102,13 @@ public class Server {
 		for (int i = 0; i < keks.length; i++) {
 			//prepare cipher
 			try {
-				cipher.init(Cipher.ENCRYPT_MODE, keks[i]);
+				try {
+					cipher.init(Cipher.ENCRYPT_MODE, (SecretKeySpec) keks[i],  new IvParameterSpec(MyCrypto.IV.getBytes("UTF-8")));
+				} catch (InvalidAlgorithmParameterException e) {
+					e.printStackTrace();
+				} catch (UnsupportedEncodingException e) {
+					e.printStackTrace();
+				}
 			} catch (InvalidKeyException e) {
 				e.printStackTrace();
 			}
@@ -94,35 +124,42 @@ public class Server {
 				e.printStackTrace();
 			}
 			
-			broadcastDek(encryption, i);
+			broadcastDek(encryption, i, id);
 		}
 		
 	}
 
 	
 	private void manageKekChanges(Cipher cipher, int id) {
-		List<byte[]> encryptedkeks = table.changeKek(cipher, id);
+		List<byte[]> encryptedKeks = table.changeKek(cipher, id);
 		
 		//prepare cipher
 		try {
-			cipher.init(Cipher.ENCRYPT_MODE, table.getDek());
+			try {
+				cipher.init(Cipher.ENCRYPT_MODE,(SecretKeySpec) table.getDek(),  new IvParameterSpec(MyCrypto.IV.getBytes("UTF-8")));
+			} catch (InvalidAlgorithmParameterException e) {
+				e.printStackTrace();
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
 		} catch (InvalidKeyException e) {
 			e.printStackTrace();
 		}
 		
+		transport.setKekSending(ids, id);
 		
-		for (byte[] bs : encryptedkeks) {
+		for (int i = 0; i < encryptedKeks.size(); i ++) {
 			byte[] encryption = null;
 			
 			try {
-				encryption = cipher.doFinal(bs);
+				encryption = cipher.doFinal(encryptedKeks.get(i));
 			} catch (IllegalBlockSizeException e) {
 				e.printStackTrace();
 			} catch (BadPaddingException e) {
 				e.printStackTrace();
 			}
 			
-			broadcastKek(encryption);
+			broadcastKek(encryption, i, id);
 		}
 		
 	}
@@ -130,15 +167,24 @@ public class Server {
 	/**
 	 * 
 	 * @param encryption dek encrypted
-	 * @param i index of the kek used to encrypt the dek
+	 * @param index index of the kek used to encrypt the dek
+	 * @param leavingId of the leaving member
 	 */
-	private void broadcastDek(byte[] encryption, int i) {
-		transport.sendDekEncrypted(encryption, ids, i);
+	private void broadcastDek(byte[] encryption, int index, int leavingId) {
+		transport.sendDekEncrypted(encryption, ids, index, leavingId);
 	}
 	
-	private void broadcastKek(byte[] encryption) {
-		// TODO Auto-generated method stub
+	private void broadcastKek(byte[] encryption, int index, int leavingId) {
+		transport.sendKekEncrypted(encryption, ids, index, leavingId);
 		
+	}
+	
+	public SecretKey getDek(){
+		return table.getDek();
+	}
+	
+	public SecretKey getKek(int index, int bitValue){
+		return table.getKek(index, bitValue);
 	}
 	
 }
