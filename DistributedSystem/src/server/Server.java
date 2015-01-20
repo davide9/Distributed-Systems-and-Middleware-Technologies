@@ -1,12 +1,12 @@
 package server;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -27,7 +27,7 @@ import centralizedFlatTable.CentralizedFlatTable;
  */
 public class Server {
 
-	private List<Integer> ids;
+	private Set<Integer> ids;
 	private CentralizedFlatTable table;
 	private TransportServer transport;
 
@@ -39,25 +39,9 @@ public class Server {
 
 	public Server(){
 		table = new CentralizedFlatTable(numOfBit, ALGORITHM);
-		ids = new ArrayList<Integer>();
+		ids = new HashSet<Integer>();
 		transport = new TransportServer(this);
-		/*
-		SecretKey key = table.getDek();
-		byte[] prova = key.getEncoded();
-		
-		SecretKey key2 = new SecretKeySpec(prova,ALGORITHM);
-		
-		if(key==key2){
-			System.out.println("UGUALI");
-		}
-		else{
-			System.out.println("DIVERSE");
-		}
-		*/
 		transport.setUp();
-		
-		
-		
 		
 	}
 
@@ -72,24 +56,23 @@ public class Server {
 	}
 	
 	public void leave(int id){
-		//get the cipher
-		//TODO handle remove of id
 		ids.remove(id);
+		
+		//get the cipher
 		Cipher cipher; 
 		try {
 			cipher = Cipher.getInstance(CHIPER_TRANSFORMATION);
 			
 			manageDekChanges(cipher, id);
 			manageKekChanges(cipher, id);
+			
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		} catch (NoSuchPaddingException e) {
 			e.printStackTrace();
 		}
-
 	}
 	
-
 	private void manageDekChanges(Cipher cipher, int id) {
 
 		SecretKey newDek = table.changeDek();
@@ -99,7 +82,13 @@ public class Server {
 		//crypt dek with keks and broadcast
 		byte[] dekByte = newDek.getEncoded();
 		
+		Set<Integer> missingNotify = new HashSet<Integer>();
+		
+		missingNotify.addAll(ids);
+		
 		for (int i = 0; i < keks.length; i++) {
+			
+			
 			//prepare cipher
 			try {
 				try {
@@ -124,7 +113,17 @@ public class Server {
 				e.printStackTrace();
 			}
 			
-			broadcastDek(encryption, i, id);
+			//calculate who notify
+			Set<Integer> memberToNotify = new HashSet<Integer>();
+			for (int member : missingNotify) {
+				if(! CentralizedFlatTable.isCommonKey(member, id, i)){
+					memberToNotify.add(member);
+				}
+			}
+			
+			broadcastDek(encryption, memberToNotify, i, id);
+			//no need to notify again members in memberToNotify
+			missingNotify.removeAll(memberToNotify);
 		}
 		
 	}
@@ -161,17 +160,17 @@ public class Server {
 			
 			broadcastKek(encryption, i, id);
 		}
-		
 	}
 	
 	/**
 	 * 
 	 * @param encryption dek encrypted
+	 * @param memberToNotify 
 	 * @param index index of the kek used to encrypt the dek
-	 * @param leavingId of the leaving member
+	 * @param leavingId, id of the leaving member
 	 */
-	private void broadcastDek(byte[] encryption, int index, int leavingId) {
-		transport.sendDekEncrypted(encryption, ids, index, leavingId);
+	private void broadcastDek(byte[] encryption, Set<Integer> memberToNotify, int index, int leavingId) {
+		transport.sendDekEncrypted(encryption, memberToNotify, index, leavingId);
 	}
 	
 	private void broadcastKek(byte[] encryption, int index, int leavingId) {

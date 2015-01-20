@@ -3,6 +3,8 @@ package myCrypto;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -64,7 +66,7 @@ public class MyCrypto {
 		return encryption;
 	}
 	
-	public static byte[] dencrypt(byte[] input, Cipher cipher, SecretKey ciperKey) {
+	public static byte[] decrypt(byte[] input, Cipher cipher, SecretKey ciperKey) {
 		//prepare cipher
 		try {
 			try {
@@ -78,25 +80,76 @@ public class MyCrypto {
 			e.printStackTrace();
 		}
 		
-		byte[] dencryption = null;
+		byte[] decryption = null;
 		
 		try {
-			dencryption = cipher.doFinal(input);
+			decryption = cipher.doFinal(input);
 		} catch (IllegalBlockSizeException e) {
 			e.printStackTrace();
 		} catch (BadPaddingException e) {
 			e.printStackTrace();
 		}
 		
-		return dencryption;
+		return decryption;
 	}
 	
-	public static SecretKey dencryptKey(byte[] input, Cipher cipher, SecretKey ciperKey) {
-		byte[] byteKey = dencrypt(input, cipher, ciperKey);
+	public static SecretKey decryptKey(byte[] input, Cipher cipher, SecretKey ciperKey) {
+		byte[] byteKey = decrypt(input, cipher, ciperKey);
 		SecretKey key = new SecretKeySpec(byteKey, server.Server.ALGORITHM);
 		return key;
 	}
 
+	//-----------------------------------Assimmetric crypto-------------------------------------------------
+	public static byte[] encryptKeyAsimmetric(SecretKey input, Cipher cipher, PublicKey ciperKey){
+		byte[] byteKey = input.getEncoded();
+		return encryptAsimmetric(byteKey, cipher, ciperKey);
+	}
+	
+	public static byte[] encryptAsimmetric(byte[] input, Cipher cipher, PublicKey ciperKey){
+		//prepare cipher
+		try {
+			cipher.init(Cipher.ENCRYPT_MODE, ciperKey);
+		} catch (InvalidKeyException e) {
+			e.printStackTrace();
+		}
 		
+		byte[] encryption = null;
+		
+		try {
+			encryption = cipher.doFinal(input);
+		} catch (IllegalBlockSizeException e) {
+			e.printStackTrace();
+		} catch (BadPaddingException e) {
+			e.printStackTrace();
+		}
+		
+		return encryption;
+	}
 
+	public static SecretKey decryptKeyAsimmetric(byte[] input, Cipher cipher, PrivateKey ciperKey) {
+		byte[] byteKey = decryptAsimmetric(input, cipher, ciperKey);
+		SecretKey key = new SecretKeySpec(byteKey, server.Server.ALGORITHM);
+		return key;
+	}
+	
+	public static byte[] decryptAsimmetric(byte[] input, Cipher cipher, PrivateKey ciperKey) {
+		//prepare cipher
+		try {
+			cipher.init(Cipher.DECRYPT_MODE, ciperKey);
+		} catch (InvalidKeyException e) {
+			e.printStackTrace();
+		}
+		
+		byte[] decryption = null;
+		
+		try {
+			decryption = cipher.doFinal(input);
+		} catch (IllegalBlockSizeException e) {
+			e.printStackTrace();
+		} catch (BadPaddingException e) {
+			e.printStackTrace();
+		}
+		
+		return decryption;
+	}
 }

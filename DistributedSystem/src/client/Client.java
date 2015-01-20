@@ -1,22 +1,31 @@
 package client;
 
-import java.io.EOFException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-
 import transport.TransportClient;
 
 public class Client {
+	
+	public static final String ALGORITHM = "RSA";
+
+	public static final String CHIPER_TRANSFORMATION = "RSA/ECB/PKCS1Padding";
+	
 	private SecretKey dek;
 	private SecretKey[] keks;
 	private TransportClient transport;
+	private PrivateKey myKey;
+	private PublicKey publicKey;
 	
 	public Client(){
 		keks = new SecretKey[server.Server.numOfBit];
+		
+		createAsimmetricKey();
+		
 		transport = new TransportClient(this);
 	}
 
@@ -29,6 +38,7 @@ public class Client {
 			System.out.println("waiting....");
 			while(true){
 				transport.listen();
+				System.out.println("waiting....");
 			}
 			
 		} catch (UnknownHostException e) {
@@ -68,4 +78,31 @@ public class Client {
 	public SecretKey getDek() {
 		return dek;
 	}
+	
+	public PublicKey getPublicKey() {
+		return this.publicKey;
+	}
+	
+	public PrivateKey getPrivateKey() {
+		return this.myKey;
+	}
+	
+	private void createAsimmetricKey() {
+		KeyPairGenerator gen = null;
+		try {
+			gen = KeyPairGenerator.getInstance(ALGORITHM);
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		
+		KeyPair pair = gen.generateKeyPair();
+		
+		myKey = pair.getPrivate();
+		publicKey = pair.getPublic();
+	}
+
+
+
+	
+
 }

@@ -1,18 +1,17 @@
 package transport;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
+import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
@@ -27,8 +26,9 @@ public class TransportServer {
 	private Map<Integer, Socket> clientMapping;
 	private Map<Integer, ObjectOutputStream> clientOutputStream;
 	private Map<InetAddress, Integer> ipMapping;
+	private Map<Integer, PublicKey> publicKeyMapping;
 	private Server myServer;
-	ServerSocket serverSocket;
+	private ServerSocket serverSocket;
 	
 	private int maxId;
 
@@ -46,6 +46,7 @@ public class TransportServer {
 		clientMapping = new HashMap<Integer, Socket>();
 		ipMapping = new HashMap<InetAddress, Integer>();
 		clientOutputStream = new HashMap<Integer, ObjectOutputStream>();
+		publicKeyMapping = new HashMap<Integer, PublicKey>();
 	}
 
 	public void setUp(){
@@ -73,30 +74,30 @@ public class TransportServer {
 	
 	private void handleRequest(Socket clientSocket) {
 		
-		BufferedReader in = null;
+		ObjectInputStream in = null;
 	    try {
-		    in = new BufferedReader(
-		        new InputStreamReader(clientSocket.getInputStream()));
+		    in = new ObjectInputStream(clientSocket.getInputStream());
 		    
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		String inputLine;
 		
 		//try to write in the stream
 		try {
-			inputLine = in.readLine();
-			int command = Integer.parseInt(inputLine);
-			int id;
+			int command = (Integer) in.readObject();
 			System.out.println("Request for command " + command);
+			int id;
 			switch(command){
 				case JOIN:
+					//first read the public key
+					PublicKey publicKey = (PublicKey) in.readObject();
 					//assign id to the incoming client
 					id = maxId;
 					maxId++;
 					clientMapping.put(id, clientSocket);
 					ipMapping.put(clientSocket.getInetAddress(), id);
+					publicKeyMapping.put(id, publicKey);
 					//call the join function
 					myServer.join(id);
 					break;
@@ -110,66 +111,74 @@ public class TransportServer {
 					
 					clientMapping.get(id).close();
 					clientMapping.remove(id);
+					
+					publicKeyMapping.remove(id);
+					
+					clientOutputStream.get(id).close();
+					clientOutputStream.remove(id);
 					break;
 			}
 		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 		
 	}
 
 	public void notifyKey(int id, SecretKey dek, SecretKey[] keks) {
-		Socket clientSocket = null;
-		clientSocket = clientMapping.get(id);
+		Cipher cipher = null;
+		try {
+			cipher = Cipher.getInstance(client.Client.CHIPER_TRANSFORMATION);
+		} catch (NoSuchAlgorithmException e1) {
+			e1.printStackTrace();
+		} catch (NoSuchPaddingException e1) {
+			e1.printStackTrace();
+		}
+
+		Socket clientSocket = clientMapping.get(id);
+		PublicKey publicKey = publicKeyMapping.get(id);
 		
 		ObjectOutputStream outputStream = null;
 	    try {
 	    	outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+		    clientOutputStream.put(id, outputStream);
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	    
-	    clientOutputStream.put(id, outputStream);
-	    
+	    	    
 	    try {
 	    	System.out.println("Sending data to client: " + clientSocket.getRemoteSocketAddress());
 	    	System.out.println("Sending Dek....");
-			outputStream.writeObject(dek);
+	    	//send dek encrypted
+	    	byte[] encryption = MyCrypto.encryptKeyAsimmetric(dek, cipher, publicKey);
+			outputStream.writeObject(encryption);
 			
 			System.out.println("Sending "+ keks.length + " keys...");
 			outputStream.writeInt(keks.length);
 			
+			//send all the kek (encrypted)
 		    for (SecretKey kek : keks) {
-			    outputStream.writeObject(kek);
+		    	encryption = MyCrypto.encryptKeyAsimmetric(kek, cipher, publicKey);
+			    outputStream.writeObject(encryption);
 			}
+		    
 			System.out.println("keks sent");
 			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	    
 	}
 
-	/**
-	 * 
-	 * @param encryption
-	 * @param ids
-	 * @param index
-	 * @param leavingId
-	 */
-	public void sendDekEncrypted(byte[] encryption, List<Integer> ids, int index, int leavingId) {
+	public void sendDekEncrypted(byte[] encryption, Set<Integer> ids, int index, int leavingId) {
 		for (Integer id : ids) {
-			
-			if(CentralizedFlatTable.isCommonKey(id, leavingId, index)){
-				continue;
-			}
-			
 			System.out.println("Sending new dek...");
 			sendKeyEncripted(encryption, id, index);
 		}
 	}
 	
-	public void sendKekEncrypted(byte[] encryption, List<Integer> ids, int index, int leavingId) {
+	public void sendKekEncrypted(byte[] encryption, Set<Integer> ids, int index, int leavingId) {
 		for (Integer id : ids) {
 			
 			if( ! CentralizedFlatTable.isCommonKey(id, leavingId, index)){
@@ -200,11 +209,10 @@ public class TransportServer {
 		}
 	}
 
-	public void setKekSending(List<Integer> ids, int leavingId) {
+	public void setKekSending(Set<Integer> ids, int leavingId) {
 		//tells each client how many kek is going to received
 		for (Integer id : ids) {
 			
-			Socket clientSocket = clientMapping.get(id);
 			ObjectOutputStream outputStream = clientOutputStream.get(id);
 			
 			System.out.println("number of keks to change = " + CentralizedFlatTable.howManyInCommon(id, leavingId));
