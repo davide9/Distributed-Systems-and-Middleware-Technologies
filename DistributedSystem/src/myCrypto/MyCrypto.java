@@ -1,17 +1,23 @@
 package myCrypto;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.Base64;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+
+import server.Server;
 
 /**
  * Classe di supporto per criptare chiavi o un array di byte.
@@ -151,5 +157,51 @@ public class MyCrypto {
 		}
 		
 		return decryption;
+	}
+	
+	public static String encryptString(String toCrypt, SecretKey key){
+		Cipher cipher = null; 
+		try {
+			cipher = Cipher.getInstance(Server.CHIPER_TRANSFORMATION);
+
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+		}
+	
+		byte[] byteString = toCrypt.getBytes(Charset.forName("ISO-8859-1"));
+		
+		byteString = encrypt(byteString, cipher, key);
+		
+		System.out.println(new String(byteString, Charset.forName("ISO-8859-1")));
+		//System.out.println(byteString.length);
+		//byte[] encryptedByteValue = Base64.getEncoder().encode(byteString);
+		//String prova = new String(byteString, Charset.forName("ISO-8859-1"));
+		//byteString = prova.getBytes(Charset.forName("ISO-8859-1"));
+		//System.out.println(byteString.length);
+		return new String(byteString, Charset.forName("ISO-8859-1"));
+		
+	}
+	
+	public static String decryptString(String toDecrypt, SecretKey key){
+		Cipher cipher = null; 
+		try {
+			cipher = Cipher.getInstance(Server.CHIPER_TRANSFORMATION);
+
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+		}
+		System.out.println(toDecrypt);
+		//byte[] decodedValue = Base64.getDecoder().decode(toDecrypt.getBytes());
+
+		byte[] byteString = toDecrypt.getBytes(Charset.forName("ISO-8859-1"));
+				
+		byteString = decrypt(byteString, cipher, key);
+		
+		return new String(byteString, Charset.forName("ISO-8859-1"));
+
 	}
 }

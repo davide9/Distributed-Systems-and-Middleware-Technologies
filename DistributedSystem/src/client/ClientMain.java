@@ -7,6 +7,8 @@ public class ClientMain {
 		System.out.println("Client 1 is going to join...");
 		client1.join();
 		client1.listen();
+		System.out.println("Start chatting");
+		client1.startMessage();
 		/*
 		Client client2 = new Client();
 		System.out.println("Client 2 is going to join...");

@@ -8,11 +8,14 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import javax.crypto.SecretKey;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+
+import myCrypto.MyCrypto;
 
 /**
  * A simple Swing-based client for the chat server.  Graphically
@@ -31,12 +34,13 @@ import javax.swing.JTextField;
  * this string should be displayed in its message area.
  */
 public class ClientMess {
-
+	
     BufferedReader in;
     PrintWriter out;
     JFrame frame = new JFrame("Chatter");
     JTextField textField = new JTextField(40);
     JTextArea messageArea = new JTextArea(8, 40);
+    SecretKey dek;
 
     /**
      * Constructs the client by laying out the GUI and registering a
@@ -45,9 +49,10 @@ public class ClientMess {
      * however that the textfield is initially NOT editable, and
      * only becomes editable AFTER the client receives the NAMEACCEPTED
      * message from the server.
+     * @param dek 
      */
-    public ClientMess() {
-
+    public ClientMess(SecretKey dek) {
+    	this.dek = dek;
         // Layout GUI
         textField.setEditable(false);
         messageArea.setEditable(false);
@@ -63,7 +68,9 @@ public class ClientMess {
              * the text area in preparation for the next message.
              */
             public void actionPerformed(ActionEvent e) {
-                out.println(textField.getText());
+            	String textToSend = textField.getText();
+            	String testEncrypted = MyCrypto.encryptString(textToSend, ClientMess.this.dek);
+                out.println(testEncrypted);
                 textField.setText("");
             }
         });
@@ -111,7 +118,14 @@ public class ClientMess {
             } else if (line.startsWith("NAMEACCEPTED")) {
                 textField.setEditable(true);
             } else if (line.startsWith("MESSAGE")) {
-                messageArea.append(line.substring(8) + "\n");
+            	//delete MESSAGE from the input line
+            	line = line.substring(8);
+            	//take the name of the author of the line
+                String name = line.split(":")[0];
+                messageArea.append(name + ":");
+                String text = line.substring(name.length()+2);
+                text = MyCrypto.decryptString(text, this.dek);
+                messageArea.append(text + "\n");
             }
         }
     }
@@ -119,8 +133,8 @@ public class ClientMess {
     /**
      * Runs the client as an application with a closeable frame.
      */
-    public static void main(String[] args) throws Exception {
-        ClientMess client = new ClientMess();
+    public void main(SecretKey dek) throws Exception {
+        ClientMess client = new ClientMess(dek);
         client.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         client.frame.setVisible(true);
         client.run();

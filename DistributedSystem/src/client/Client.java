@@ -6,7 +6,9 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+
 import javax.crypto.SecretKey;
+
 import transport.TransportClient;
 
 public class Client {
@@ -34,16 +36,46 @@ public class Client {
 	}
 	
 	public void listen(){
-		try {
-			System.out.println("waiting....");
-			while(true){
-				transport.listen();
-				System.out.println("waiting....");
+		class ClientListen extends Thread{
+			@Override
+			public void run(){
+				try {
+					System.out.println("waiting....");
+					while(true){
+						transport.listen();
+						System.out.println("waiting....");
+					}
+					
+				} catch (UnknownHostException e) {
+					e.printStackTrace();
+				}
 			}
-			
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		}	
+		}
+		
+		ClientListen listen = new ClientListen();
+		listen.start();
+		System.out.println("the client is listening");
+	}
+	
+	public void startMessage(){
+		class ClientMessage extends Thread{
+			private ClientMess mess;
+			public ClientMessage(SecretKey dek) {
+				mess = new ClientMess(dek);
+			}
+
+			@Override
+			public void run(){
+				try {
+					mess.main(dek);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		ClientMessage message = new ClientMessage(dek);
+		message.start();
 	}
 	
 	public void leave(){

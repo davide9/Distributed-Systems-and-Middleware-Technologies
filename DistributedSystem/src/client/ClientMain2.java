@@ -7,6 +7,7 @@ public class ClientMain2 {
 		System.out.println("Client 2 is going to join...");
 		client1.join();
 		System.out.println("client 2 is leaving.....");
+		client1.startMessage();
 		client1.leave();
 		/*
 		Client client2 = new Client();
@@ -19,7 +20,9 @@ public class ClientMain2 {
 		
 		client1.leave();
 		*/
-
+		while(true){
+			
+		}
 	}
 
 }
