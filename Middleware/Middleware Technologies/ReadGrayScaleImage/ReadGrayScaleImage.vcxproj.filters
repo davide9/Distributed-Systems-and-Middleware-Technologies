@@ -15,18 +15,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="matrix_split_fuse.cpp">
+    <ClCompile Include="reader.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="resource.h">
-      <Filter>File di intestazione</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\..\..\..\Downloads\bottone_01_phpQwkW13.pgm">
-      <Filter>File di risorse</Filter>
-    </None>
   </ItemGroup>
 </Project>

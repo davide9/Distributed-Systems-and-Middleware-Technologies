@@ -7,6 +7,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProvaMPI_01", "ProvaMPI_01\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MPI_matrix_split_fuse", "MPI_matrix_split_fuse\MPI_matrix_split_fuse.vcxproj", "{B6A1E628-516C-4A2A-9C76-1E8554468251}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ReadGrayScaleImage", "ReadGrayScaleImage\ReadGrayScaleImage.vcxproj", "{5AE17C8A-A547-4FE7-A0CA-C73AE62F320B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GammaCorrectionMPI", "GammaCorrectionMPI\GammaCorrectionMPI.vcxproj", "{3DAC3F2E-6949-48E6-BC68-9E924982B56A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -21,6 +25,14 @@ Global
 		{B6A1E628-516C-4A2A-9C76-1E8554468251}.Debug|Win32.Build.0 = Debug|Win32
 		{B6A1E628-516C-4A2A-9C76-1E8554468251}.Release|Win32.ActiveCfg = Release|Win32
 		{B6A1E628-516C-4A2A-9C76-1E8554468251}.Release|Win32.Build.0 = Release|Win32
+		{5AE17C8A-A547-4FE7-A0CA-C73AE62F320B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5AE17C8A-A547-4FE7-A0CA-C73AE62F320B}.Debug|Win32.Build.0 = Debug|Win32
+		{5AE17C8A-A547-4FE7-A0CA-C73AE62F320B}.Release|Win32.ActiveCfg = Release|Win32
+		{5AE17C8A-A547-4FE7-A0CA-C73AE62F320B}.Release|Win32.Build.0 = Release|Win32
+		{3DAC3F2E-6949-48E6-BC68-9E924982B56A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3DAC3F2E-6949-48E6-BC68-9E924982B56A}.Debug|Win32.Build.0 = Debug|Win32
+		{3DAC3F2E-6949-48E6-BC68-9E924982B56A}.Release|Win32.ActiveCfg = Release|Win32
+		{3DAC3F2E-6949-48E6-BC68-9E924982B56A}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

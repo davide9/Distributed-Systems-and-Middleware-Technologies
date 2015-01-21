@@ -11,34 +11,46 @@ int main(int argc, char* argv[]){
 	init_parallelism(argc, argv, &rank, &nproc);
 
 	MPI_Status stat;
-	int* mat;
-	int recvbuf[10];
+	int* mat = NULL;
+	int* recvbuf;
+
+	int size, correction;
+	size = 5 * 5;
+	if (size%nproc){
+		correction = size / nproc;
+		correction = nproc * (correction + 1) - size;
+	}
+	else
+		correction = 0;
+	if (correction)
+	{
+		size += correction;
+	}
+	recvbuf = (int*)(malloc(sizeof(int)*size / nproc));
 	if (rank == 0){
-		mat = (int*)(malloc(sizeof(int) * 10 * 10));
-		int row, col;
-		for (row = 0; row < 10; row++){
-			for (col = 0; col < 10; col++){
-				mat[10 * col + row] = 10 * col + row;
-			}
+		mat = (int*)(malloc(sizeof(int) * size));
+		int i;
+		for (i = 0; i < size; i++){
+			mat[i] = i;
 		}
 		printf("DECOMPOSITION\n");
 	}
-	MPI_Scatter(mat, 10, MPI_INT, recvbuf, 10, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Scatter(mat, size/nproc, MPI_INT, recvbuf, size/nproc, MPI_INT, 0, MPI_COMM_WORLD);
 	
-	for (int row = 0; row < 10; row++){
+	for (int row = 0; row < (size / nproc); row++){
 		recvbuf[row] += rank;
-		printf("%d%s", recvbuf[row], (recvbuf[row]<10?"  ":" "));
+		printf("%d%s", recvbuf[row], (recvbuf[row] < 10 ? "  " : " "));
 	}
 	printf(" by process %d\n",rank);
 
 	if (rank == 0)
 		printf("COMPOSITION\n");
 
-	MPI_Gather(recvbuf, 10, MPI_INT, mat, 10, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Gather(recvbuf, size/nproc, MPI_INT, mat, size/nproc, MPI_INT, 0, MPI_COMM_WORLD);
 	if (rank == 0){
-		for (int row = 0; row < 10; row++){
-			for (int col = 0; col < 10; col++){
-				printf("%d%s", mat[10 * col + row], (mat[10 * col + row] < 10 ? "  " : " "));
+		for (int row = 0; row < 5; row++){
+			for (int col = 0; col < 5; col++){
+				printf("%d%s", mat[5 * col + row], (mat[5 * col + row] < 10 ? "  " : " "));
 			}
 			printf("\n");
 		}
