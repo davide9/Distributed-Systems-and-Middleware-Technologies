@@ -39,14 +39,6 @@ public class Server {
 
 	public Server(){
 		table = new CentralizedFlatTable(numOfBit, ALGORITHM);
-		
-		SecretKey dek = getDek();
-		String prova = new String("ciaoofdfnasbld ba ffaesg grh t- gre+e+");
-		System.out.println(prova);
-		String provaEnc = MyCrypto.encryptString(prova, dek);
-		prova = MyCrypto.decryptString(provaEnc, dek);
-		System.out.println(prova);
-		
 		ids = new HashSet<Integer>();
 		transport = new TransportServer(this);
 		transport.setUp();

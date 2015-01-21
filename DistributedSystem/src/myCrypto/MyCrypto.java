@@ -49,7 +49,7 @@ public class MyCrypto {
 		//prepare cipher
 		try {
 			try {
-				cipher.init(Cipher.ENCRYPT_MODE, (SecretKeySpec) ciperKey, new IvParameterSpec(IV.getBytes("UTF-8")));
+				cipher.init(Cipher.ENCRYPT_MODE, (SecretKeySpec) ciperKey, new IvParameterSpec(IV.getBytes("ISO-8859-1")));
 			} catch (InvalidAlgorithmParameterException e) {
 				e.printStackTrace();
 			} catch (UnsupportedEncodingException e) {
@@ -76,7 +76,7 @@ public class MyCrypto {
 		//prepare cipher
 		try {
 			try {
-				cipher.init(Cipher.DECRYPT_MODE, (SecretKeySpec) ciperKey, new IvParameterSpec(IV.getBytes("UTF-8")));
+				cipher.init(Cipher.DECRYPT_MODE, (SecretKeySpec) ciperKey, new IvParameterSpec(IV.getBytes("ISO-8859-1")));
 			} catch (InvalidAlgorithmParameterException e) {
 				e.printStackTrace();
 			} catch (UnsupportedEncodingException e) {
@@ -159,7 +159,11 @@ public class MyCrypto {
 		return decryption;
 	}
 	
+	
+	//------------Simmetric encryption for string------------
+	
 	public static String encryptString(String toCrypt, SecretKey key){
+		System.out.println("Encrypption key " + key);
 		Cipher cipher = null; 
 		try {
 			cipher = Cipher.getInstance(Server.CHIPER_TRANSFORMATION);
@@ -170,21 +174,14 @@ public class MyCrypto {
 			e.printStackTrace();
 		}
 	
-		byte[] byteString = toCrypt.getBytes(Charset.forName("ISO-8859-1"));
+		byte[] byteString = toCrypt.getBytes();
 		
-		byteString = encrypt(byteString, cipher, key);
-		
-		System.out.println(new String(byteString, Charset.forName("ISO-8859-1")));
-		//System.out.println(byteString.length);
-		//byte[] encryptedByteValue = Base64.getEncoder().encode(byteString);
-		//String prova = new String(byteString, Charset.forName("ISO-8859-1"));
-		//byteString = prova.getBytes(Charset.forName("ISO-8859-1"));
-		//System.out.println(byteString.length);
-		return new String(byteString, Charset.forName("ISO-8859-1"));
+		return Base64.getMimeEncoder().encodeToString(encrypt(byteString, cipher, key));
 		
 	}
 	
-	public static String decryptString(String toDecrypt, SecretKey key){
+	public static String decryptString(String toDecrypt, SecretKey key) throws BadPaddingException{
+		System.out.println("Decryption key " + key);
 		Cipher cipher = null; 
 		try {
 			cipher = Cipher.getInstance(Server.CHIPER_TRANSFORMATION);
@@ -194,11 +191,9 @@ public class MyCrypto {
 		} catch (NoSuchPaddingException e) {
 			e.printStackTrace();
 		}
-		System.out.println(toDecrypt);
-		//byte[] decodedValue = Base64.getDecoder().decode(toDecrypt.getBytes());
-
-		byte[] byteString = toDecrypt.getBytes(Charset.forName("ISO-8859-1"));
-				
+		
+		byte[] byteString = Base64.getMimeDecoder().decode(toDecrypt.getBytes());
+			
 		byteString = decrypt(byteString, cipher, key);
 		
 		return new String(byteString, Charset.forName("ISO-8859-1"));
