@@ -3,6 +3,7 @@ package client;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -16,8 +17,10 @@ import java.security.PublicKey;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.SecretKey;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -57,19 +60,25 @@ public class Client {
 				try {
 					System.out.println("waiting....");
 					while(true){
-						transport.listen();
+						try {
+							int result = transport.listen();
+							if( result == -1){
+								break;
+							}
+						} catch (EOFException e) {
+							System.out.println("Stop listening...");
+							break;
+						}
 						System.out.println("waiting....");
 					}
-					
 				} catch (UnknownHostException e) {
 					e.printStackTrace();
-				}
+				}				
 			}
 		}
 		
 		ClientListen listen = new ClientListen();
 		listen.start();
-		System.out.println("the client is listening");
 	}
 	
 	public void startMessage(){
@@ -151,9 +160,10 @@ public class Client {
 		
 	    private BufferedReader in;
 	    private PrintWriter out;
-	    private JFrame frame = new JFrame("Chatter");
+	    private JFrame frame = new JFrame("Chat group");
 	    private JTextField textField = new JTextField(40);
 	    private JTextArea messageArea = new JTextArea(8, 40);
+	    private JButton leaveButton = new JButton("Leave group");
 
 	    /**
 	     * Constructs the client by laying out the GUI and registering a
@@ -170,6 +180,9 @@ public class Client {
 	        messageArea.setEditable(false);
 	        frame.getContentPane().add(textField, "North");
 	        frame.getContentPane().add(new JScrollPane(messageArea), "Center");
+	        JPanel buttons = new JPanel();
+	        frame.getContentPane().add(buttons, "East");
+	        buttons.add(leaveButton, "Center");
 	        frame.pack();
 
 	        // Add Listeners
@@ -186,6 +199,17 @@ public class Client {
 	                textField.setText("");
 	            }
 	        });
+	        
+	        leaveButton.addActionListener(new ActionListener() {
+				
+	        	/**
+	        	 * Responds to pressing the leaving button by sending the leave message
+	        	 * to the key server.
+	        	 */
+	        	public void actionPerformed(ActionEvent arg0) {
+					Client.this.leave();
+				}
+			});
 	    }
 	    
 	    /**

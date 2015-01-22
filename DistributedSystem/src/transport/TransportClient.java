@@ -1,5 +1,6 @@
 package transport;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -92,7 +93,7 @@ public class TransportClient {
 		}
 	}
 
-	public void listen() throws UnknownHostException {
+	public int listen() throws UnknownHostException, EOFException {
 		if(serverSocket != null){
 			Cipher cipher = null;
 			
@@ -103,16 +104,29 @@ public class TransportClient {
 			} catch (NoSuchPaddingException e) {
 				e.printStackTrace();
 			}
+			try{
+				//manage the receving of dek and its setting
+				int result = receiveDekOnLeave(cipher, inStreamServer);
+				
+				if(result == -1)
+					return -1;
 			
-			//manage the receving of dek and its setting
-			receiveDekOnLeave(cipher, inStreamServer);
-			
-			//manage the receving of kek and its setting
-			reveiveKeksOnLeave(cipher, inStreamServer);
+				//manage the receving of kek and its setting
+				result = reveiveKeksOnLeave(cipher, inStreamServer);
+				
+				
+				if(result == -1)
+					return -1;
+			}catch(Exception e){
+				System.out.println("Porco schifo");
+				return -1;
+			}
 		}
 		else{
 			throw new UnknownHostException();
 		}
+		
+		return 0;
 		
 	}
 
@@ -154,7 +168,7 @@ public class TransportClient {
 		
 	}
 	
-	private void receiveDekOnLeave(Cipher cipher, ObjectInputStream inStreamServer2) {
+	private int receiveDekOnLeave(Cipher cipher, ObjectInputStream inStreamServer2) {
 		try {
 			//getting index of the key to use
 			int index = (Integer) inStreamServer.readObject();
@@ -171,14 +185,15 @@ public class TransportClient {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
-		}
+			System.out.println("catched it");
+			return -1;
+		} 
+		return 0;
 	}
 	
-	private void reveiveKeksOnLeave(Cipher cipher, ObjectInputStream inStreamServer2) {
+	private int reveiveKeksOnLeave(Cipher cipher, ObjectInputStream inStreamServer2) {
 		try {
 			//received number of kek to change
-
 			int numOfKeyToReceive = (Integer) inStreamServer.readObject();
 			System.out.println("I'm going to receive " + numOfKeyToReceive + " keks...");
 			
@@ -202,7 +217,9 @@ public class TransportClient {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
-		}
+			System.out.println("catched it");
+			return -1;
+		} 
+		return 0;
 	}
 }
