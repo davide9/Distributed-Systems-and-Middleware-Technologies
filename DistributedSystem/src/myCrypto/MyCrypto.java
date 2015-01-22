@@ -93,7 +93,7 @@ public class MyCrypto {
 		} catch (IllegalBlockSizeException e) {
 			e.printStackTrace();
 		} catch (BadPaddingException e) {
-			e.printStackTrace();
+			return null;
 		}
 		
 		return decryption;
@@ -172,7 +172,7 @@ public class MyCrypto {
 			e.printStackTrace();
 		} catch (NoSuchPaddingException e) {
 			e.printStackTrace();
-		}
+		} 
 	
 		byte[] byteString = toCrypt.getBytes();
 		
@@ -180,7 +180,7 @@ public class MyCrypto {
 		
 	}
 	
-	public static String decryptString(String toDecrypt, SecretKey key) throws BadPaddingException{
+	public static String decryptString(String toDecrypt, SecretKey key) {
 		System.out.println("Decryption key " + key);
 		Cipher cipher = null; 
 		try {
@@ -193,9 +193,14 @@ public class MyCrypto {
 		}
 		
 		byte[] byteString = Base64.getMimeDecoder().decode(toDecrypt.getBytes());
-			
+		
 		byteString = decrypt(byteString, cipher, key);
 		
+		if(byteString == null){
+			//decryption went wrong just return the string in input without doing anything
+			return toDecrypt;
+		}
+		//else return decrypted string
 		return new String(byteString, Charset.forName("ISO-8859-1"));
 
 	}

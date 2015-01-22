@@ -23,11 +23,11 @@ public class TransportClient {
 	
 	protected final static int CLIENT_PORT = 7777;
 
-	public TransportClient(Client client){
+	public TransportClient(Client client, String serverName){
 		myClient = client;
 		serverSocket = null;
-		serverName = new String("0.0.0.0");
 		inStreamServer = null;
+		this.serverName = serverName;
 		out = null;
 	}
 

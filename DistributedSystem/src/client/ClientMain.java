@@ -1,9 +1,17 @@
 package client;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.Scanner;
+
 public class ClientMain {
 
 	public static void main(String[] args) {
-		Client client1 = new Client();
+		Scanner in = new Scanner(System.in);
+		System.out.println("Insert the server name...");
+		String serverName = in.nextLine();
+		Client client1 = new Client(serverName);
 		System.out.println("Client 1 is going to join...");
 		client1.join();
 		client1.listen();

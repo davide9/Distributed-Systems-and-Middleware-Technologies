@@ -38,12 +38,12 @@ public class Client {
 	private PublicKey publicKey;
 	private ClientMess message;
 	
-	public Client(){
+	public Client(String serverName){
 		keks = new SecretKey[server.Server.numOfBit];
 		
 		createAsimmetricKey();
-		
-		transport = new TransportClient(this);
+		System.out.println(serverName);
+		transport = new TransportClient(this, serverName);
 	}
 
 	public void join(){
@@ -236,11 +236,7 @@ public class Client {
 	                String name = line.split(":")[0];
 	                messageArea.append(name + ": ");
 	                String text = line.substring(name.length()+2);
-	                try{
-	                	text = MyCrypto.decryptString(text, dek);
-	                } catch(BadPaddingException e){
-	                	//do nothing
-	                }
+	                text = MyCrypto.decryptString(text, dek);
 	                messageArea.append(text + "\n");
 	            }
 	        }

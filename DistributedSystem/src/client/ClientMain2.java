@@ -1,10 +1,15 @@
 package client;
 
+import java.util.Scanner;
+
 public class ClientMain2 {
 
 	public static void main(String[] args) {
-		Client client1 = new Client();
-		System.out.println("Client 2 is going to join...");
+		Scanner in = new Scanner(System.in);
+		System.out.println("Insert the server name...");
+		String serverName = in.nextLine();
+		Client client1 = new Client(serverName);
+		System.out.println("Client 1 is going to join...");
 		client1.join();
 		System.out.println("client 2 is leaving.....");
 		client1.startMessage();
