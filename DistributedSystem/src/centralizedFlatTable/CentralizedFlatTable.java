@@ -24,6 +24,11 @@ public class CentralizedFlatTable {
 	private KeyGenerator gen;
 	private String algorithm;
 	
+	/**
+	 * 
+	 * @param numOfBit, mazimum number of bit to use for the KEK Table
+	 * @param algorithm to use for encrypt/decrypt
+	 */
 	public CentralizedFlatTable(int numOfBit, String algorithm){
 		this.algorithm = algorithm; 
 		this.numOfBit = numOfBit;
@@ -47,9 +52,12 @@ public class CentralizedFlatTable {
 	}
 	
 	/**
+	 * /**
 	 * Change the key that are owned by the member identified whit its ID.
 	 * 
 	 * @param id the id of the member that will leave
+	 * @param cipher to use for encrypting new kek
+	 * @return list of new kek encrypted
 	 */
 	public List<byte[]> changeKek(Cipher cipher, int id){
 		String binary = binarizeInteger(id);
@@ -107,6 +115,50 @@ public class CentralizedFlatTable {
 		
 		return keks;
 	}
+
+	/**
+	 * 
+	 * @param id1, first ID
+	 * @param id2, second ID
+	 * @param index, index of the key to check
+	 * @return true if the two ID have the same KEK at the position indicated by index
+	 */
+	public static boolean isCommonKey(int id1, int id2, int index){
+		String binary1 = binarizeInteger(id1);
+		
+		String binary2 = binarizeInteger(id2);
+		
+		if(binary1.charAt(binary1.length() - 1 - index) == binary2.charAt(binary2.length() - 1 - index)){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+
+	public SecretKey getKek(int index, int bitValue) {
+		return this.table[bitValue][index];
+	}
+	
+	/**
+	 * 
+	 * @param id1, first ID
+	 * @param id2, second ID
+	 * @return number of the same bit value in common between the two ID
+	 */
+	public static int howManyInCommon(Integer id1, int id2) {
+		String binary1 = binarizeInteger(id1);
+		
+		String binary2 = binarizeInteger(id2);
+		
+		int count = 0;
+		for(int i = 0; i < binary1.length(); i++){
+			if(binary1.charAt(i) == binary2.charAt(i)){
+				count++;
+			}
+		}
+		return count;
+	}
 	
 	private static String binarizeInteger(int id) {
 		String binary = Integer.toBinaryString(id);
@@ -121,36 +173,5 @@ public class CentralizedFlatTable {
 			binary = temp;
 		}
 		return binary;
-	}
-
-	public static boolean isCommonKey(int id1, int id2, int index){
-		String binary1 = binarizeInteger(id1);
-		
-		String binary2 = binarizeInteger(id2);
-		
-		if(binary1.charAt(binary1.length() - 1 - index) == binary2.charAt(binary2.length() - 1 - index)){
-			return true;
-		}
-		else{
-			return false;
-		}
-	}
-
-	public static int howManyInCommon(Integer id1, int id2) {
-		String binary1 = binarizeInteger(id1);
-		
-		String binary2 = binarizeInteger(id2);
-		
-		int count = 0;
-		for(int i = 0; i < binary1.length(); i++){
-			if(binary1.charAt(i) == binary2.charAt(i)){
-				count++;
-			}
-		}
-		return count;
-	}
-
-	public SecretKey getKek(int index, int bitValue) {
-		return this.table[bitValue][index];
 	}
 }
