@@ -37,9 +37,6 @@ public class TransportServer {
 	public static final int JOIN = 0;
 	public static final int LEAVE = 1;
 	
-	
-	
-	
 	public TransportServer(Server server){
 		myServer = server;
 		maxId = 0;

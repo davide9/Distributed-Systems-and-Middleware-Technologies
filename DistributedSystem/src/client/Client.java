@@ -17,6 +17,7 @@ import java.security.PublicKey;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -43,7 +44,8 @@ public class Client {
 	
 	public Client(String serverName){
 		keks = new SecretKey[server.Server.numOfBit];
-		
+		dek = new SecretKeySpec(new byte[16], server.Server.ALGORITHM);
+				
 		createAsimmetricKey();
 		System.out.println(serverName);
 		transport = new TransportClient(this, serverName);
@@ -95,9 +97,13 @@ public class Client {
 	}
 	
 	public void setDek(SecretKey newDek){
-		System.out.println("Setting dek key " + newDek);
-		dek = newDek;
+		
+		synchronized (dek) {
+			System.out.println("Setting dek key " + newDek);
+			dek = newDek;
+		}
 	}
+	
 	
 	public void setKeks(SecretKey[] keks){
 		System.out.println("Setting kek keys....");
@@ -255,13 +261,15 @@ public class Client {
 	                textField.setEditable(true);
 	            } else if (line.startsWith("MESSAGE")) {
 	            	//delete MESSAGE from the input line
-	            	line = line.substring(8);
-	            	//take the name of the author of the line
-	                String name = line.split(":")[0];
-	                messageArea.append(name + ": ");
-	                String text = line.substring(name.length()+2);
-	                text = MyCrypto.decryptString(text, dek);
-	                messageArea.append(text + "\n");
+	            	synchronized(dek){ 
+	            		line = line.substring(8);
+		            	//take the name of the author of the line
+		                String name = line.split(":")[0];
+		                messageArea.append(name + ": ");
+		                String text = line.substring(name.length()+2);
+		                text = MyCrypto.decryptString(text, dek);
+		                messageArea.append(text + "\n");
+	            	}
 	            }
 	        }
 	    }
