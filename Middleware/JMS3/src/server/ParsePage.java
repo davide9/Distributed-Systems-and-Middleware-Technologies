@@ -1,16 +1,9 @@
 package server;
 
-import java.awt.Image;
-import java.awt.image.RenderedImage;
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.Properties;
-
-import javax.imageio.ImageIO;
+import java.util.ArrayList;
+import java.util.List;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
@@ -19,7 +12,6 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.Queue;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 import org.jsoup.Jsoup;
@@ -31,6 +23,7 @@ import com.smartfile.api.BasicClient;
 import com.smartfile.api.SmartFileException;
 
 import common.JMS_set_up;
+import messages.MessageImageList;
 import messages.MessageNameKey;
 
 public class ParsePage implements MessageListener{
@@ -48,19 +41,15 @@ public class ParsePage implements MessageListener{
 
 		Context initialContext = JMS_set_up.getContext();
 				
-		Queue subscribeQueue = (Queue) initialContext.lookup(subscribeQueueName);
-		Queue publishQueue = (Queue) initialContext.lookup(publishQueueName);
+		subscribeQueue = (Queue) initialContext.lookup(subscribeQueueName);
+		publishQueue = (Queue) initialContext.lookup(publishQueueName);
 		
 		JMSContext jmsContext = ((ConnectionFactory) initialContext.lookup("java:comp/DefaultJMSConnectionFactory")).createContext();
 		jmsContext.createConsumer(subscribeQueue).setMessageListener(this);
 
-		JMSProducer jmsProducer = jmsContext.createProducer();
+		jmsProducer = jmsContext.createProducer();
 	}
 	
-	
-	public static void main(String[] args) throws IOException, NamingException {
-		ParsePage chat = new ParsePage();
-	}
 	
 	public void onMessage(Message msg) {
 		
@@ -85,34 +74,52 @@ public class ParsePage implements MessageListener{
 			client = new BasicClient("5Pke4WiJ8uzaxCPEQ59P6ACUwm89iI", "fVasCSf4etDHxv7mCOZlSWrJYGdk1j");
 		} catch (SmartFileException e) {
 			e.printStackTrace();
+			return;
 		}
         //client.setApiUrl("app.smartfile.com");
 
         InputStream fileStream = null;
 		try {
-			fileStream = client.get(endpoint, id);
+			fileStream = client.get(endpoint+id, fileName);
 		} catch (SmartFileException e1) {
 			e1.printStackTrace();
+			return;
 		}
 		
 		//parsing
-		
+		List<String> imgSource = null;
 		try {
-			parsing(fileStream, url, endpoint);
+			imgSource = parsing(fileStream, url);
 		} catch (IOException e) {
 			e.printStackTrace();
+			return;
+		}
+		System.out.println("ho trovato " + imgSource.size() + "immagine");
+		
+		if(imgSource.size() == 0){
+			return;
 		}
 		
+		jmsProducer.send(publishQueue, new MessageImageList(imgSource, endpoint, id, fileName));
+
+		
+	}
+	
+	public static void main(String[] args) throws IOException, NamingException {
+		ParsePage chat = new ParsePage();
+		while(true);
 	}
 
-	private void parsing(InputStream input, String url, String endpoint) throws IOException {
+	private List<String> parsing(InputStream input, String url) throws IOException {
+		
 		Document doc = Jsoup.parse(input, "UTF-8", url);
 		Elements img = doc.getElementsByTag("img");
+		List<String> imageSource = new ArrayList<String>();
 		for (Element el : img) {
 			String absSrc = el.absUrl("src");
-
-
-			this.jmsProducer.send(publishQueue, new MessageNameKey(endpoint, null, absSrc, url));
+			imageSource.add(absSrc);
 		}
+		
+		return imageSource;
     }
 }

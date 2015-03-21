@@ -64,7 +64,7 @@ public class LoadURL implements MessageListener {
 				e.printStackTrace();
 			}
 			
-			System.out.println(body);
+			System.out.println("L'url ricevuto è: " + body);
 		}
 		
 		else{

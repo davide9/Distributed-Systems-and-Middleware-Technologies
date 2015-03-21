@@ -1,55 +1,127 @@
 package server;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Properties;
-
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.List;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
-import javax.jms.JMSProducer;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.Queue;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import com.smartfile.api.BasicClient;
+import com.smartfile.api.SmartFileException;
+
+import messages.MessageImageSrcName;
+import common.Download;
+import common.JMS_set_up;
 
 public class ModifyPage implements MessageListener {
 
 	private static String subscribeQueueName = "Queue4-5";
+		
+	private Queue subscribeQueue;
 	
-	public static void main(String[] args) throws IOException, NamingException {
-		
-		Context initialContext = getContext();
-		
-		ModifyPage chat = new ModifyPage();
+	public ModifyPage() throws NamingException{
+		Context initialContext = JMS_set_up.getContext();
 
-				
-		Queue subscribeQueue = (Queue) initialContext.lookup(subscribeQueueName);
+		subscribeQueue = (Queue) initialContext.lookup(subscribeQueueName);
 		
 		JMSContext jmsContext = ((ConnectionFactory) initialContext.lookup("java:comp/DefaultJMSConnectionFactory")).createContext();
-		jmsContext.createConsumer(subscribeQueue).setMessageListener(chat);
-		
+		jmsContext.createConsumer(subscribeQueue).setMessageListener(this);
 	}
 	
-	private static Context getContext() throws NamingException {
-		Properties props = new Properties();
-		props.setProperty("java.naming.factory.initial", "com.sun.enterprise.naming.SerialInitContextFactory");
-		props.setProperty("java.naming.factory.url.pkgs", "com.sun.enterprise.naming");
-		props.setProperty("java.naming.provider.url", "iiop://localhost:3700");
-		return new InitialContext(props);
-	}
-
 	public void onMessage(Message msg) {
+		MessageImageSrcName mess = null;
 		try {
-			System.out.println(msg.getBody(String.class));
+			mess = msg.getBody(MessageImageSrcName.class);
 		} catch (JMSException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
+		List<String> nameList = mess.getName();
+		List<String> srcList = mess.getSrc();
+		String fileName = mess.getFileName();
+		
+        InputStream fileStream = null;
+        BasicClient client = null;
+        try {
+			client = new BasicClient("5Pke4WiJ8uzaxCPEQ59P6ACUwm89iI", "fVasCSf4etDHxv7mCOZlSWrJYGdk1j");
+			fileStream = client.get(mess.getEndpoint()+mess.getId(), fileName);
+		} catch (SmartFileException e1) {
+			e1.printStackTrace();
+			return;
+		}
+        
+        BufferedReader br = new BufferedReader(new InputStreamReader(fileStream));
+		File fileTemp = Download.downloadHtml(br, "TheSourcePageModify");
+		try {
+			br.close();
+	        fileStream.close();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			return;
+		}
+		
+		Document doc = null;
+		try {
+			doc = Jsoup.parse(fileTemp, "UTF-8");
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		}
+		
+		Elements img = doc.getElementsByTag("img");
+		for (Element el : img) {
+			String src = el.attr("src");
+			for (int i = 0; i < srcList.size(); i++) {
+				//se match allora modifica il riferimento all'immagine
+				if(srcList.get(i).endsWith(src)){
+					el.attr("src", nameList.get(i));
+				}
+			}
+		}
+		
+		PrintWriter writer = null;
+		try {
+			writer = new PrintWriter(fileTemp,"UTF-8");
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return;
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return;
+		}
+		writer.write(doc.html() ) ;
+		writer.flush();
+		writer.close();
+		
+		try {
+			client.post(mess.getEndpoint(), mess.getId(), fileTemp);
+			System.out.println("Html modificato è su");
+		} catch (SmartFileException e) {
+			e.printStackTrace();
+			return;
+		}
+	}
+	
+	public static void main(String[] args) throws NamingException {
+		ModifyPage chat = new ModifyPage();
+		while(true);
 	}
 
 }
