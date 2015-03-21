@@ -6,11 +6,16 @@ public class MessageNameKey implements Serializable {
 
 	private String id;
 	private String endpoint;
+	private String name;
+	private String url;
 	
-	public MessageNameKey(String endpoint, String id){
+	public MessageNameKey(String endpoint, String id, String name, String url){
 		super();
 		this.endpoint = endpoint;
 		this.id = id;
+		this.name = name;
+		this.url = url;
+		
 	}
 
 	public String getId() {
@@ -28,4 +33,17 @@ public class MessageNameKey implements Serializable {
 	public void setEndpoint(String endpoint) {
 		this.endpoint = endpoint;
 	}
+	
+	public void setName(String name){
+		this.name = name;
+	}
+	
+	public String getName(){
+		return this.name;
+	}
+	
+	public String getUrl(){
+		return this.url;
+	}
+	
 }

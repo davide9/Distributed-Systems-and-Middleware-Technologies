@@ -1,11 +1,16 @@
 package server;
 
+import java.awt.Image;
+import java.awt.image.RenderedImage;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.Properties;
 
+import javax.imageio.ImageIO;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
@@ -69,6 +74,8 @@ public class ParsePage implements MessageListener{
 		}
 		String endpoint = mess.getEndpoint();
 		String id = mess.getId();
+		String fileName = mess.getName();
+		String url = mess.getUrl();
 		
 		
 		//getting the object
@@ -79,7 +86,7 @@ public class ParsePage implements MessageListener{
 		} catch (SmartFileException e) {
 			e.printStackTrace();
 		}
-        client.setApiUrl("app.smartfile.com");
+        //client.setApiUrl("app.smartfile.com");
 
         InputStream fileStream = null;
 		try {
@@ -91,20 +98,21 @@ public class ParsePage implements MessageListener{
 		//parsing
 		
 		try {
-			parsing(fileStream);
+			parsing(fileStream, url, endpoint);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
 	}
 
-	private void parsing(InputStream input) throws IOException {
-		Document doc = Jsoup.parse(input, "UTF-8", null);
+	private void parsing(InputStream input, String url, String endpoint) throws IOException {
+		Document doc = Jsoup.parse(input, "UTF-8", url);
 		Elements img = doc.getElementsByTag("img");
 		for (Element el : img) {
-			String src = el.attr("src");
+			String absSrc = el.absUrl("src");
 
-			this.jmsProducer.send(publishQueue, src);
+
+			this.jmsProducer.send(publishQueue, new MessageNameKey(endpoint, null, absSrc, url));
 		}
     }
 }

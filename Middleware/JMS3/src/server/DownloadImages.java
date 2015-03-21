@@ -1,10 +1,15 @@
 package server;
 
+import java.awt.Image;
+import java.awt.image.RenderedImage;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.Properties;
 
+import javax.imageio.ImageIO;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
@@ -16,39 +21,67 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import messages.MessageNameKey;
+
+import com.smartfile.api.BasicClient;
+
 public class DownloadImages implements MessageListener {
 
 	private static String publishQueueName = "Queue4-5";
 	private static String subscribeQueueName = "Queue3-4";
+
+	private JMSProducer jmsProducer;
 	
-	public static void main(String[] args) throws IOException, NamingException {
+	private Queue publishQueue;
+	private Queue subscribeQueue;
+	
+	public DownloadImages() throws NamingException{
 		
 		Context initialContext = getContext();
-		
-		DownloadImages chat = new DownloadImages();
-
 				
 		Queue subscribeQueue = (Queue) initialContext.lookup(subscribeQueueName);
 		Queue publishQueue = (Queue) initialContext.lookup(publishQueueName);
 		
 		JMSContext jmsContext = ((ConnectionFactory) initialContext.lookup("java:comp/DefaultJMSConnectionFactory")).createContext();
-		jmsContext.createConsumer(subscribeQueue).setMessageListener(chat);
+		jmsContext.createConsumer(subscribeQueue).setMessageListener(this);
 
 		JMSProducer jmsProducer = jmsContext.createProducer();
-		
-		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-		String msgToSend = null;
-		while (true) {
-			msgToSend = bufferedReader.readLine();
-			if (msgToSend.equalsIgnoreCase("exit")) {
-				jmsContext.close();
-				System.exit(0);
-			}
-			else {
-				jmsProducer.send(publishQueue, "URL = " + msgToSend );
-			}
-		}
+	}
 
+	public void onMessage(Message msg) {
+		MessageNameKey mess = null;
+		try {
+			mess = msg.getBody(MessageNameKey.class);
+		} catch (JMSException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String src = mess.getName();
+		Image image = null;
+		String fileName = src;
+	    File file = null;
+		try {
+		    URL url = new URL(src);
+		    image = ImageIO.read(url);
+		    file = File.createTempFile(fileName, "png");
+		    ImageIO.write((RenderedImage) image, "png", file);
+		} catch (IOException e) {
+			System.out.println("sono cazzi");
+		}
+		
+		BasicClient client = null;
+		try {
+			client = new BasicClient("5Pke4WiJ8uzaxCPEQ59P6ACUwm89iI", "fVasCSf4etDHxv7mCOZlSWrJYGdk1j");
+			//client.setApiUrl("app.smartfile.com");
+			client.post(endpoint, id, file);
+		}
+	}
+
+	public static void main(String[] args) throws IOException, NamingException {
+		
+		DownloadImages chat = new DownloadImages();
+		
 	}
 	
 	private static Context getContext() throws NamingException {
@@ -58,15 +91,4 @@ public class DownloadImages implements MessageListener {
 		props.setProperty("java.naming.provider.url", "iiop://localhost:3700");
 		return new InitialContext(props);
 	}
-
-	public void onMessage(Message msg) {
-		try {
-			System.out.println(msg.getBody(String.class));
-		} catch (JMSException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-	}
-
 }

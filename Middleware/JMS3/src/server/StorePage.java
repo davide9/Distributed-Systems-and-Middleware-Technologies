@@ -41,6 +41,8 @@ public class StorePage implements MessageListener {
 	private Queue publishQueue;
 	private Queue subscribeQueue;
 	
+	private int num = 0;
+	
 	public StorePage() throws NamingException{
 		
 		Context initialContext = JMS_set_up.getContext();
@@ -64,6 +66,8 @@ public class StorePage implements MessageListener {
 
 	public void onMessage(Message msg) {
 
+		num ++;
+		
 		String body = null;
 		try {
 			body = (String) msg.getBody(String.class);
@@ -88,33 +92,35 @@ public class StorePage implements MessageListener {
 		} 
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         
+        String fileName = "";
         
-        File htmlSource = downloadHtml(br, "pippo");
+        File htmlSource = downloadHtml(br, fileName);
         
         
         System.out.println("prova");
-        
+        System.out.println(num);
+   
         //save on smart file
-        String endpoint = "/path";
-        String id = "/data";
+        String endpoint = body;
+        String id = "/page";
         BasicClient client = null;
+        
+        System.out.println(htmlSource);
         
 		try {
 			client = new BasicClient("5Pke4WiJ8uzaxCPEQ59P6ACUwm89iI", "fVasCSf4etDHxv7mCOZlSWrJYGdk1j");
-		} catch (SmartFileException e) {
-			e.printStackTrace();
-		}
-        client.setApiUrl("app.smartfile.com");
-        
-        try {
+			//client.setApiUrl("app.smartfile.com");
 			client.post(endpoint, id, htmlSource);
-		} catch (SmartFileException e) {
-			e.printStackTrace();
-		}
-        
-        MessageNameKey mess = new MessageNameKey(endpoint, id);
+			
+			MessageNameKey mess = new MessageNameKey(endpoint, id, fileName, body);
         
         jmsProducer.send(publishQueue, mess);
+		} catch (SmartFileException e) {
+			e.printStackTrace();
+		}finally{
+			System.out.println("La madonna");
+		}
+   
 	}
 
 	public static void main(String[] args) throws IOException, NamingException {	

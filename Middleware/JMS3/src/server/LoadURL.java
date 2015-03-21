@@ -44,12 +44,10 @@ public class LoadURL implements MessageListener {
 	}
 
 	public void onMessage(Message msg) {
-		System.out.println("culo");
 		String body = null;
 		try {
 			body = (String) msg.getBody(String.class);
 		} catch (JMSException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
@@ -62,12 +60,15 @@ public class LoadURL implements MessageListener {
 			try {
 				url = new URL(body);
 				jmsProducer.send(publishQueue, body);
-				System.out.println(body);
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}
 			
 			System.out.println(body);
+		}
+		
+		else{
+			System.out.println("Message not valid");
 		}
 	}
 	
