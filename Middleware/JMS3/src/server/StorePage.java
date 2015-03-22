@@ -25,7 +25,7 @@ import com.smartfile.api.SmartFileException;
 import common.Download;
 import common.JMS_set_up;
 
-public class StorePage implements MessageListener {
+public class StorePage extends Thread implements MessageListener {
 
 	private static String publishQueueName = "Queue2-3";
 	private static String subscribeQueueName = "Queue1-2";
@@ -34,6 +34,8 @@ public class StorePage implements MessageListener {
 	
 	private Queue publishQueue;
 	private Queue subscribeQueue;
+	
+	private boolean test = false;
 		
 	public StorePage() throws NamingException{
 		
@@ -57,8 +59,9 @@ public class StorePage implements MessageListener {
 			e1.printStackTrace();
 			return;
 		}
+		if(test)
+			System.out.println("L'url ricevuto è: " + body);
 		
-		System.out.println("L'url ricevuto è: " + body);
 		URL url = null;
 
 		try {
@@ -101,13 +104,20 @@ public class StorePage implements MessageListener {
 			client.post(endpoint, id, htmlSource);
 			
 			MessageNameKey mess = new MessageNameKey(endpoint, id, htmlSource.getName(), body);
-			System.out.println(htmlSource.getName());
+			if(test)
+				System.out.println(htmlSource.getName());
 			jmsProducer.send(publishQueue, mess);
 			
 		} catch (SmartFileException e) {
 			e.printStackTrace();
 		}
    
+	}
+	
+	public void run(){
+		while(!this.isInterrupted()){
+			
+		}
 	}
 
 	public static void main(String[] args) throws IOException, NamingException {	

@@ -26,7 +26,7 @@ import common.JMS_set_up;
 import messages.MessageImageList;
 import messages.MessageNameKey;
 
-public class ParsePage implements MessageListener{
+public class ParsePage extends Thread implements MessageListener{
 
 	private static String publishQueueName = "Queue3-4";
 	private static String subscribeQueueName = "Queue2-3";
@@ -36,6 +36,9 @@ public class ParsePage implements MessageListener{
 	
 	private Queue publishQueue;
 	private Queue subscribeQueue;
+	
+	private boolean test = false;
+
 	
 	public ParsePage() throws NamingException{
 
@@ -94,7 +97,8 @@ public class ParsePage implements MessageListener{
 			e.printStackTrace();
 			return;
 		}
-		System.out.println("ho trovato " + imgSource.size() + "immagine");
+		if(test)
+			System.out.println("ho trovato " + imgSource.size() + "immagine");
 		
 		if(imgSource.size() == 0){
 			return;
@@ -103,6 +107,12 @@ public class ParsePage implements MessageListener{
 		jmsProducer.send(publishQueue, new MessageImageList(imgSource, endpoint, id, fileName));
 
 		
+	}
+	
+	public void run(){
+		while(!this.isInterrupted()){
+			
+		}
 	}
 	
 	public static void main(String[] args) throws IOException, NamingException {

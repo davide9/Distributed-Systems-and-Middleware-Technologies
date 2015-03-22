@@ -3,20 +3,18 @@ package client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Properties;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
 import javax.jms.Queue;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 import common.JMS_set_up;
 
-public class Client {
-
+public class TestClient {
+	
 	public static String publishQueueName = "Queue-Client_Server";
 	
 	public static void main(String[] args) throws NamingException, IOException {
@@ -30,21 +28,11 @@ public class Client {
 				
 		JMSProducer jmsProducer = jmsContext.createProducer();
 		
-		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-		String msgToSend = null;
-		while (true) {
-			System.out.println("Inserire un URL");
-			msgToSend = bufferedReader.readLine();
-			if (msgToSend.equalsIgnoreCase("exit")) {
-				jmsContext.close();
-				System.exit(0);
-			}
-			else {
-				jmsProducer.send(publishQueue, "URL = " + msgToSend );
-				System.out.println("messaggio mandato");
-			}
+		String msgToSend = "http://www.cavallibaggio.it/";
+		
+		for(int i = 0; i < 1000; i++){
+			jmsProducer.send(publishQueue, "URL = " + msgToSend );
 		}
 	}
-
 
 }

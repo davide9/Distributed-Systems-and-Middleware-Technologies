@@ -30,11 +30,14 @@ import messages.MessageImageSrcName;
 import common.Download;
 import common.JMS_set_up;
 
-public class ModifyPage implements MessageListener {
+public class ModifyPage extends Thread implements MessageListener {
 
 	private static String subscribeQueueName = "Queue4-5";
 		
 	private Queue subscribeQueue;
+	
+	private boolean test = false;
+
 	
 	public ModifyPage() throws NamingException{
 		Context initialContext = JMS_set_up.getContext();
@@ -112,10 +115,17 @@ public class ModifyPage implements MessageListener {
 		
 		try {
 			client.post(mess.getEndpoint(), mess.getId(), fileTemp);
-			System.out.println("Html modificato è su");
+			if(test)
+				System.out.println("Html modificato è su");
 		} catch (SmartFileException e) {
 			e.printStackTrace();
 			return;
+		}
+	}
+	
+	public void run(){
+		while(!this.isInterrupted()){
+			
 		}
 	}
 	

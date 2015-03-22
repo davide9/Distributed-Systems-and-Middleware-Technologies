@@ -25,7 +25,7 @@ import com.smartfile.api.SmartFileException;
 
 import common.JMS_set_up;
 
-public class DownloadImages implements MessageListener {
+public class DownloadImages extends Thread implements MessageListener {
 
 	private static String publishQueueName = "Queue4-5";
 	private static String subscribeQueueName = "Queue3-4";
@@ -34,6 +34,9 @@ public class DownloadImages implements MessageListener {
 	
 	private Queue publishQueue;
 	private Queue subscribeQueue;
+	
+	private boolean test = false;
+
 	
 	public DownloadImages() throws NamingException{
 		
@@ -92,7 +95,8 @@ public class DownloadImages implements MessageListener {
 	    	
 			try {
 				client.post(endpoint, id, file);
-				System.out.println("upload immagine effettuato");
+				if(test)
+					System.out.println("upload immagine effettuato");
 			} catch (SmartFileException e) {
 				e.printStackTrace();
 				return;
@@ -102,6 +106,12 @@ public class DownloadImages implements MessageListener {
 		}
 		
 	    jmsProducer.send(publishQueue, new MessageImageSrcName(listSrc, nameList, endpoint, id, fileName));
+	}
+	
+	public void run(){
+		while(!this.isInterrupted()){
+			
+		}
 	}
 
 	public static void main(String[] args) throws IOException, NamingException {

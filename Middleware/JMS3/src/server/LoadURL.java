@@ -20,7 +20,7 @@ import javax.naming.NamingException;
 
 import common.JMS_set_up;
 
-public class LoadURL implements MessageListener {
+public class LoadURL extends Thread implements MessageListener {
 
 	private static String publishQueueName = "Queue1-2";
 	private static String subscribeQueueName = "Queue-Client_Server";
@@ -29,6 +29,8 @@ public class LoadURL implements MessageListener {
 	
 	private Queue publishQueue;
 	private Queue subscribeQueue;
+	
+	private boolean test = false;
 	
 	public LoadURL() throws NamingException, IOException{
 		
@@ -63,12 +65,18 @@ public class LoadURL implements MessageListener {
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}
-			
-			System.out.println("L'url ricevuto è: " + body);
+			if(test)
+				System.out.println("L'url ricevuto è: " + body);
 		}
 		
 		else{
 			System.out.println("Message not valid");
+		}
+	}
+	
+	public void run(){
+		while(!this.isInterrupted()){
+			
 		}
 	}
 	
