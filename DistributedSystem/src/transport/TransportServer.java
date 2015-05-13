@@ -82,7 +82,6 @@ public class TransportServer {
     		    in = new ObjectInputStream(socket.getInputStream());
             	while(true){
 	        	    int command = (Integer) in.readObject();
-	        	    System.out.println(command);
 	        	    if(id == -1)
 	        	    	publicKey = (PublicKey) in.readObject();
 	        	    
