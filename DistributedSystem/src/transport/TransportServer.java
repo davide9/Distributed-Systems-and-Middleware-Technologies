@@ -91,47 +91,52 @@ public class TransportServer {
 	            	}
 	            }
             } catch (IOException | ClassNotFoundException e) {
-            	System.out.println(e);
+            	leave(socket, id);
             }
 		}
 		
 	}
 	
-	protected int handleRequest(Socket clientSocket, int command, PublicKey publicKey, int id) {
+	protected synchronized int handleRequest(Socket clientSocket, int command, PublicKey publicKey, int id) {
 
-		//try to write in the stream
-		try {
-			System.out.println("Request for command " + command);
-			switch(command){
-				case JOIN:
-					//assign id to the incoming client
-					id = maxId;
-					maxId++;
-					clientMapping.put(id, clientSocket);
-					publicKeyMapping.put(id, publicKey);
-					//call the join function
-					myServer.join(id);
-					return id;
-				case LEAVE:
-					System.out.println("request from " + clientSocket.getRemoteSocketAddress().toString());
-					System.out.println("Request for leaving by id " +id );
-					myServer.leave(id);
-					
-					clientMapping.get(id).close();
-					clientMapping.remove(id);
-					
-					publicKeyMapping.remove(id);
-					
-					clientOutputStream.get(id).close();
-					clientOutputStream.remove(id);
-					break;
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		System.out.println("Request for command " + command);
+		switch(command){
+			case JOIN:
+				//assign id to the incoming client
+				id = maxId;
+				maxId++;
+				clientMapping.put(id, clientSocket);
+				publicKeyMapping.put(id, publicKey);
+				//call the join function
+				myServer.join(id);
+				return id;
+			case LEAVE:
+				leave(clientSocket, id);
+				break;
 		}
 		
 		return -1;
-		
+	}
+	
+	protected int leave(Socket clientSocket, int id){
+		try{
+			System.out.println("request from " + clientSocket.getRemoteSocketAddress().toString());
+			System.out.println("Request for leaving by id " +id );
+			myServer.leave(id);
+			
+			clientMapping.get(id).close();
+			clientOutputStream.get(id).close();
+			
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally{
+				clientMapping.remove(id);
+				
+				publicKeyMapping.remove(id);
+				
+				clientOutputStream.remove(id);
+		}
+		return -1;
 	}
 
 	public void notifyKey(int id, SecretKey dek, SecretKey[] keks) {

@@ -172,7 +172,10 @@ public class Client {
 
 	            public void actionPerformed(ActionEvent e) {
 	            	String textToSend = textField.getText();
-	            	String testEncrypted = MyCrypto.encryptString(textToSend, dek);
+	            	String testEncrypted = null;
+	            	synchronized (dek) {
+		            	testEncrypted = MyCrypto.encryptString(textToSend, dek);
+					}
 	                out.println(testEncrypted);
 	                textField.setText("");
 	            }
