@@ -1,8 +1,11 @@
 package transport;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -41,66 +44,71 @@ public class TransportServer {
 		myServer = server;
 		maxId = 0;
 		clientMapping = new HashMap<Integer, Socket>();
-		ipMapping = new HashMap<InetAddress, Integer>();
 		clientOutputStream = new HashMap<Integer, ObjectOutputStream>();
 		publicKeyMapping = new HashMap<Integer, PublicKey>();
 	}
 
 	public void setUp(){
-		Socket clientSocket = null;
 		try {
-			System.out.println("Initialize server on port" + SERVER_PORT);
+			System.out.println("Initialize server on port " + SERVER_PORT);
 			serverSocket = new ServerSocket(SERVER_PORT);
 			System.out.println("Server is running at ip: " + serverSocket.getInetAddress().getHostAddress());
 			System.out.println("Server name: " + serverSocket.getInetAddress().getHostName());
-			clientSocket = serverSocket.accept();
 			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	    while(true){
 			try {
-				handleRequest(clientSocket);
+				new Handler(serverSocket.accept()).start();
 				System.out.println("waiting new request");
-				clientSocket = serverSocket.accept();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 	    }
 	}
 	
-	private void handleRequest(Socket clientSocket) {
+	private class Handler extends Thread {
+		private Socket socket;
+    	private ObjectInputStream in = null;
+    	private int id = 0;
+    	
+		public Handler(Socket socket) {
+            this.socket = socket;
+        }
 		
-		ObjectInputStream in = null;
-	    try {
-		    in = new ObjectInputStream(clientSocket.getInputStream());
-		    
-		} catch (IOException e) {
-			e.printStackTrace();
+		public void run() {
+            try {
+    		    in = new ObjectInputStream(socket.getInputStream());
+            	while(true){
+	        	    int command = (Integer) in.readObject();
+	        	    PublicKey publicKey = (PublicKey) in.readObject();
+	            	this.id = handleRequest(socket, command, publicKey, id);
+	            }
+            } catch (IOException | ClassNotFoundException e) {
+            	System.out.println(e);
+            }
 		}
-
 		
+	}
+	
+	protected int handleRequest(Socket clientSocket, int command, PublicKey publicKey, int id) {
+
 		//try to write in the stream
 		try {
-			int command = (Integer) in.readObject();
 			System.out.println("Request for command " + command);
-			int id;
 			switch(command){
 				case JOIN:
-					//first read the public key
-					PublicKey publicKey = (PublicKey) in.readObject();
 					//assign id to the incoming client
 					id = maxId;
 					maxId++;
 					clientMapping.put(id, clientSocket);
-					ipMapping.put(clientSocket.getInetAddress(), id);
 					publicKeyMapping.put(id, publicKey);
 					//call the join function
 					myServer.join(id);
-					break;
+					return id;
 				case LEAVE:
 					System.out.println("request from " + clientSocket.getRemoteSocketAddress().toString());
-					id = ipMapping.get(clientSocket.getInetAddress());
 					System.out.println("Request for leaving by id " +id );
 					myServer.leave(id);
 					
@@ -117,9 +125,9 @@ public class TransportServer {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
 		}
+		
+		return 0;
 		
 	}
 
@@ -148,10 +156,12 @@ public class TransportServer {
 	    try {
 	    	System.out.println("Sending data to client: " + clientSocket.getRemoteSocketAddress());
 	    	System.out.println("Sending Dek....");
+	    	
 	    	//send dek encrypted
 	    	byte[] encryption = MyCrypto.encryptKeyAsimmetric(dek, cipher, publicKey);
 			outputStream.writeObject(encryption);
 			
+			//tell how many kek has to be sent
 			System.out.println("Sending "+ keks.length + " keys...");
 			outputStream.writeInt(keks.length);
 			

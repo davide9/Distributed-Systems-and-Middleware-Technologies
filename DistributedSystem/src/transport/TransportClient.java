@@ -80,8 +80,6 @@ public class TransportClient {
 	public void notifyServerLeave() throws UnknownHostException{
 		System.out.println("trying to leave");
 		try {
-			serverSocket = new Socket(serverName, TransportServer.SERVER_PORT);
-			out = new ObjectOutputStream(serverSocket.getOutputStream());
 			out.writeObject(TransportServer.LEAVE);
 			
 			out.close();
@@ -106,6 +104,7 @@ public class TransportClient {
 			}
 			try{
 				//manage the receving of dek and its setting
+				synchronized (this) {
 				int result = receiveDekOnLeave(cipher, inStreamServer);
 				
 				if(result == -1)
@@ -117,8 +116,9 @@ public class TransportClient {
 				
 				if(result == -1)
 					return -1;
+				}
 			}catch(Exception e){
-				System.out.println("Porco schifo");
+				System.out.println(e);
 				return -1;
 			}
 		}
