@@ -72,6 +72,7 @@ public class TransportServer {
 		private Socket socket;
     	private ObjectInputStream in = null;
     	private int id = 0;
+    	private PublicKey publicKey;
     	
 		public Handler(Socket socket) {
             this.socket = socket;
@@ -82,8 +83,13 @@ public class TransportServer {
     		    in = new ObjectInputStream(socket.getInputStream());
             	while(true){
 	        	    int command = (Integer) in.readObject();
-	        	    PublicKey publicKey = (PublicKey) in.readObject();
+	        	    if(id == 0)
+	        	    	publicKey = (PublicKey) in.readObject();
+	        	    
 	            	this.id = handleRequest(socket, command, publicKey, id);
+	            	if(id == 0){
+	            		return;
+	            	}
 	            }
             } catch (IOException | ClassNotFoundException e) {
             	System.out.println(e);
