@@ -28,7 +28,6 @@ public class TransportServer {
 	
 	private Map<Integer, Socket> clientMapping;
 	private Map<Integer, ObjectOutputStream> clientOutputStream;
-	private Map<InetAddress, Integer> ipMapping;
 	private Map<Integer, PublicKey> publicKeyMapping;
 	private Server myServer;
 	private ServerSocket serverSocket;
@@ -71,7 +70,7 @@ public class TransportServer {
 	private class Handler extends Thread {
 		private Socket socket;
     	private ObjectInputStream in = null;
-    	private int id = 0;
+    	private int id = -1;
     	private PublicKey publicKey;
     	
 		public Handler(Socket socket) {
@@ -83,11 +82,12 @@ public class TransportServer {
     		    in = new ObjectInputStream(socket.getInputStream());
             	while(true){
 	        	    int command = (Integer) in.readObject();
-	        	    if(id == 0)
+	        	    System.out.println(command);
+	        	    if(id == -1)
 	        	    	publicKey = (PublicKey) in.readObject();
 	        	    
 	            	this.id = handleRequest(socket, command, publicKey, id);
-	            	if(id == 0){
+	            	if(id == -1){
 	            		return;
 	            	}
 	            }
@@ -118,8 +118,6 @@ public class TransportServer {
 					System.out.println("Request for leaving by id " +id );
 					myServer.leave(id);
 					
-					ipMapping.remove(id);
-					
 					clientMapping.get(id).close();
 					clientMapping.remove(id);
 					
@@ -133,7 +131,7 @@ public class TransportServer {
 			e.printStackTrace();
 		}
 		
-		return 0;
+		return -1;
 		
 	}
 

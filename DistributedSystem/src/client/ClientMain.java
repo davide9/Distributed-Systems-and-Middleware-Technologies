@@ -9,6 +9,7 @@ public class ClientMain {
 
 	public static void main(String[] args) {
 		Scanner in = new Scanner(System.in);
+		
 		System.out.println("Insert the server name...");
 		String serverName = in.nextLine();
 		Client client1 = new Client(serverName);

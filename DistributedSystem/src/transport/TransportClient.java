@@ -66,10 +66,10 @@ public class TransportClient {
 			inStreamServer = new ObjectInputStream(serverSocket.getInputStream());
 
 			//reciving dek on join
-			receiveDekOnjoin(cipher, inStreamServer);
+			receiveDekOnjoin(cipher);
 
 			//reciving keks
-			receiveKekOnJoin(cipher, inStreamServer);
+			receiveKekOnJoin(cipher);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -79,9 +79,10 @@ public class TransportClient {
 
 	public void notifyServerLeave() throws UnknownHostException{
 		System.out.println("trying to leave");
-		try {
+		try {			
 			out.writeObject(TransportServer.LEAVE);
 			
+			out.flush();
 			out.close();
 			serverSocket.close();
 			
@@ -130,7 +131,7 @@ public class TransportClient {
 		
 	}
 
-	private void receiveDekOnjoin(Cipher cipher, ObjectInputStream inStreamServer2) {
+	private void receiveDekOnjoin(Cipher cipher) {
 		try {
 			byte[] encrypted = (byte[]) inStreamServer.readObject();
 			SecretKey newDek = MyCrypto.decryptKeyAsimmetric(encrypted, cipher, myClient.getPrivateKey());
@@ -142,7 +143,7 @@ public class TransportClient {
 		}
 	}
 	
-	private void receiveKekOnJoin(Cipher cipher, ObjectInputStream inStreamServer2) {
+	private void receiveKekOnJoin(Cipher cipher) {
 		try {
 			int keksSize = (int) inStreamServer.readInt();
 			if(keksSize != server.Server.numOfBit){
