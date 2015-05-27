@@ -41,8 +41,11 @@ public class Client {
 	private PrivateKey myKey;
 	private PublicKey publicKey;
 	private ClientMess message;
+
+	private String serverName;
 	
 	public Client(String serverName){
+		this.serverName = serverName;
 		keks = new SecretKey[server.Server.numOfBit];
 		dek = new SecretKeySpec(new byte[16], server.Server.ALGORITHM);
 				
@@ -208,7 +211,7 @@ public class Client {
 	    private void exec() throws IOException {
 
 	        // Make connection and initialize streams
-	        String serverAddress = getServerAddress();
+	        String serverAddress = serverName;
 	        Socket socket = new Socket(serverAddress, 9001);
 	        in = new BufferedReader(new InputStreamReader(
 	            socket.getInputStream()));
