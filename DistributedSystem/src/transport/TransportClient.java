@@ -1,3 +1,4 @@
+
 package transport;
 
 import java.io.EOFException;
@@ -105,7 +106,8 @@ public class TransportClient {
 			}
 			try{
 				//manage the receving of dek and its setting
-				synchronized (this) {
+				//TODO togliere questo synchronized
+				//synchronized (this) {
 				int result = receiveDekOnLeave(cipher, inStreamServer);
 				
 				if(result == -1)
@@ -117,7 +119,7 @@ public class TransportClient {
 				
 				if(result == -1)
 					return -1;
-				}
+				//}
 			}catch(Exception e){
 				System.out.println(e);
 				return -1;
