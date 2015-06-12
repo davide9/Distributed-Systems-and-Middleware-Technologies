@@ -129,6 +129,103 @@ function httpGetMovie(response) {
 	
 };
 
+function httpMovieBookWorm(response){
+	var fullRequestQueryMovie = partialQueryMovie + apiKeyMovie + '&' + queryTermMovie + '&page_limit=2';
+	console.log('Calling -> ' + fullRequestQueryMovie);
+
+	var headersMovie = {
+	  'Content-Type': 'application/json'
+	};
+
+
+	var optionsMovie = {
+	host: hostMovie,
+	path: fullRequestQueryMovie,
+	method: 'GET',
+	headers: headersMovie
+	};
+
+	var jsonStringResponseMovie = '';
+
+	var req = http.request(optionsMovie, function(res) {
+		console.log("statusCode: ", res.statusCode);
+		console.log("headers: ", res.headers);
+
+		res.on('data', function(piece) {
+			jsonStringResponseMovie += piece;
+			//console.log(jsonStringResponseMovie); %26
+		});
+
+		res.on('end', function() {
+			var contentMovie = JSON.parse(jsonStringResponseMovie);
+			
+			for(var i=0; i < contentMovie.total; i++){
+				queryTermBook = querystring.stringify({q:contentMovie.movies[i].title});
+				console.log('prestringify-> ' + contentMovie.movies[i].title);
+				console.log('stringify-> '  + queryTermBook);
+			
+				var fullRequestQueryBook = partialQueryBook+queryTermBook+"&startIndex="+startIndex;
+	  
+				console.log('Calling -> ' + fullRequestQueryBook);
+
+				var headersBook = {
+					'Content-Type': 'application/json'
+				};
+
+
+				var optionsBook = {
+					hostname: hostBook,
+					path: fullRequestQueryBook,
+					method: 'GET',
+					headers: headersBook
+				};
+
+				var jsonStringResponseBook = '';
+
+				var req = https.request(optionsBook, function(res) {
+					console.log("statusCode: ", res.statusCode);
+					console.log("headers: ", res.headers);
+
+					res.on('data', function(piece) {
+						jsonStringResponseBook += piece;
+						//console.log(jsonStringResponseBook);
+					});
+
+					res.on('end', function() {
+						var contentBook = JSON.parse(jsonStringResponseBook);
+						console.log('Found -> ' + content.totalItems);
+						htmlBook ='';
+						htmlBook += '<h1>Movie' + contentMovie.movies[i].title + 'Search</h1>';
+						htmlBook += '<h3>Found -> ' + contentBook.totalItems + '</h3>';
+						htmlBook += '<h3>Showing -> ' + contentBook.items.length + '</h3>';
+						htmlBook += '<ul>';
+						for (var j = 0; j < contentBook.items.length; i++) {
+							htmlBook += '<li><a href="' + contentBook.items[j].infoLink+ '">'+contentBook.items[j].volumeInfo.title+'</a></li>';
+						}
+						htmlBook += '</ul>';
+						console.log(htmlBook);
+					});
+
+				});
+
+				req.end();
+
+				req.on('error', function(e) {
+					console.error(e);
+				});
+			}
+				response.send(htmlMovie);
+		});
+
+	});
+
+	req.end();
+
+	req.on('error', function(e) {
+	console.error(e);
+	});
+}
+
 /* GET home page. */
 router.get('/', function(req, res) {
   res.send("<form method='GET' action='/movies'> \
@@ -150,5 +247,12 @@ router.get('/movies', function(req,res) {
 	console.log('stringify-> ' + queryTermMovie);
 	httpGetMovie(res);
 });
+
+router.get('/webApp', function(req, res){
+	console.log('Receiver request -> ' + req.query.term);
+	queryTermMovie = querystring.stringify({q:req.query.term});
+	console.log('stringify -> ' + queryTermMovie);
+	httpMovieBookWorm(res);
+})
 
 module.exports = router;
