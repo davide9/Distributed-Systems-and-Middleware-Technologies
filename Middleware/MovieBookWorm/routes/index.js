@@ -129,8 +129,8 @@ function httpGetMovie(response) {
 	
 };
 
-function httpMovieBookWorm(response){
-	var fullRequestQueryMovie = partialQueryMovie + apiKeyMovie + '&' + queryTermMovie + '&page_limit=2';
+function httpMovieBookWorm(response, maxPage){
+	var fullRequestQueryMovie = partialQueryMovie + apiKeyMovie + '&' + queryTermMovie + '&page_limit=' + maxPage;
 	console.log('Calling -> ' + fullRequestQueryMovie);
 
 	var headersMovie = {
@@ -195,8 +195,8 @@ function httpMovieBookWorm(response){
 					var contentBook = JSON.parse(jsonStringResponseBook);
 					console.log('Found -> ' + contentBook.totalItems);
 					htmlBook ='';
-					htmlBook += '<h1>Movie' + contentMovie.movies[i].title + 'Search</h1>';
-					htmlBook += '<h3>Found -> ' + contentBook.totalItems + '</h3>';
+					htmlBook += '<h1>Movie: ' + contentMovie.movies[i].title + '</h1>';
+					htmlBook += '<h3>Found -> ' + contentBook.totalItems + ' books </h3>';
 					htmlBook += '<h3>Showing -> ' + contentBook.items.length + '</h3>';
 					htmlBook += '<ul>';
 					for (var j = 0; j < contentBook.items.length; j++) {
@@ -206,7 +206,7 @@ function httpMovieBookWorm(response){
 					console.log(htmlBook);
 					htmlMovie += htmlBook;
 					countI++;
-					if(i++ < contentMovie.movies.length)
+					if(i++ < contentMovie.movies.length-1)
 						getBook();
 					else
 						response.send(htmlMovie);
@@ -233,8 +233,9 @@ function httpMovieBookWorm(response){
 
 /* GET home page. */
 router.get('/', function(req, res) {
-  res.send("<form method='GET' action='/movies'> \
-				<input type='text' name='term'/> \
+  res.send("<form method='GET' action='/webApp'> \
+				Movie <input type='text' name='term'/><br /> \
+				Max elements <input type='text' name='np' /><br />\
 				<input type='submit'/> \
 			</form> ")
 });
@@ -257,7 +258,7 @@ router.get('/webApp', function(req, res){
 	console.log('Receiver request -> ' + req.query.term);
 	queryTermMovie = querystring.stringify({q:req.query.term});
 	console.log('stringify -> ' + queryTermMovie);
-	httpMovieBookWorm(res);
+	httpMovieBookWorm(res, req.query.np);
 })
 
 module.exports = router;
