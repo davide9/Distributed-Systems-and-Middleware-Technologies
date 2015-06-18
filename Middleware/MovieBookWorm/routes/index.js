@@ -297,27 +297,61 @@ function httpMovieBookWormAPI(response, maxPage, queryTermMovie){
 				res.on('end', function() {
 					var contentBook = JSON.parse(jsonStringResponseBook);
 					
-					var jsonMovie = new Object();
-					jsonMovie.title = contentMovie.movies[i].title;
-					jsonMovie.year = contentMovie.movies[i].year;
-					jsonMovie.marks = new Object();
-					jsonMovie.marks.critics = contentMovie.movies[i].ratings.critics_score;
-					jsonMovie.marks.audience = contentMovie.movies[i].ratings.audience_score;
-					jsonMovie.poster = contentMovie.movies[i].posters.profile;
-					jsonMovie.books = new Array();
+					var optionsDirector = {
+						host: hostMovie,
+						path: contentMovie.movies[i].links.self + '?apikey=' + apiKeyMovie,
+						method: 'GET',
+						headers: headersMovie
+					};
 					
-					console.log('Found -> ' + contentBook.totalItems);
-					for (var j = 0; j < contentBook.items.length; j++) {
-						jsonMovie.books.push(contentBook.items[j].volumeInfo.infoLink);
-					}
-					jsonRes.push(jsonMovie);
-					countI++;
-					if(i++ < contentMovie.movies.length-1)
-						getBook();
-					else
-					{
-						response.send(JSON.stringify(jsonRes));
-					}
+					var jsonStringResponseDirector = '';
+					
+					var req = https.request(optionsDirector, function(res){
+						console.log("statusCode: ", res.statusCode);
+						console.log("headers: ", res.headers);
+						
+						res.on('data', function(piece){
+							jsonStringResponseDirector += piece;
+						});
+						
+						res.on('end', function(){
+							var contentDirector = JSON.parse(jsonStringResponseDirector);
+							
+							var jsonMovie = new Object();
+							jsonMovie.title = contentMovie.movies[i].title;
+							jsonMovie.year = contentMovie.movies[i].year;
+							jsonMovie.marks = new Object();
+							jsonMovie.marks.critics = contentMovie.movies[i].ratings.critics_score;
+							jsonMovie.marks.audience = contentMovie.movies[i].ratings.audience_score;
+							jsonMovie.directors = new Array();
+							for(var d = 0; d < contentDirector.abridged_directors.length; d++){
+								var director = new Object();
+								director.name = contentDirector.abridged_directors[d];
+								jsonMovie.directories.push(director);
+							}
+							jsonMovie.poster = contentMovie.movies[i].posters.profile;
+							jsonMovie.books = new Array();
+							
+							console.log('Found -> ' + contentBook.totalItems);
+							for (var j = 0; j < contentBook.items.length; j++) {
+								var jsonBook = new Object();
+								jsonBook.link = contentBook.items[j].volumeInfo.infoLink;
+								jsonMovie.books.push(jsonBook);
+							}
+							jsonRes.push(jsonMovie);
+							countI++;
+							if(i++ < contentMovie.movies.length-1)
+								getBook();
+							else
+							{
+								response.send(JSON.stringify(jsonRes));
+							}
+						});
+					});
+					
+					req.on('error', function(e){
+						console.error(e);
+					})
 				});
 
 			});
