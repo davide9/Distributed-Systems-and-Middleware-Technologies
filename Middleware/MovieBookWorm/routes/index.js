@@ -130,6 +130,7 @@ function httpGetMovie(response) {
 };
 
 function httpMovieBookWorm(response, maxPage){
+	htmlMovie = '';
 	var fullRequestQueryMovie = partialQueryMovie + apiKeyMovie + '&' + queryTermMovie + '&page_limit=' + maxPage;
 	console.log('Calling -> ' + fullRequestQueryMovie);
 
