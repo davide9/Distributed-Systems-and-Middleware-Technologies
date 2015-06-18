@@ -256,7 +256,7 @@ function httpMovieBookWormAPI(response, maxPage, queryTermMovie){
 
 		res.on('data', function(piece) {
 			jsonStringResponseMovie += piece;
-			console.log(jsonStringResponseMovie); 
+			//console.log(jsonStringResponseMovie); 
 		});
 		var i=0;
 		var countI=0;
@@ -293,20 +293,26 @@ function httpMovieBookWormAPI(response, maxPage, queryTermMovie){
 				res.on('data', function(piece) {
 					jsonStringResponseBook += piece;
 				});
-
+				
 				res.on('end', function() {
 					var contentBook = JSON.parse(jsonStringResponseBook);
 					
+					var headersDirector = {
+					  'Content-Type': 'application/json'
+					};
+					
 					var optionsDirector = {
 						host: hostMovie,
-						path: contentMovie.movies[i].links.self + '?apikey=' + apiKeyMovie,
+						path: contentMovie.movies[i].links.self.substr(29) + '?apikey=' + apiKeyMovie,
 						method: 'GET',
-						headers: headersMovie
+						headers: headersDirector
 					};
 					
 					var jsonStringResponseDirector = '';
 					
-					var req = https.request(optionsDirector, function(res){
+					console.log('Calling -> ' + optionsDirector.path);
+					
+					var req = http.request(optionsDirector, function(res){
 						console.log("statusCode: ", res.statusCode);
 						console.log("headers: ", res.headers);
 						
