@@ -330,10 +330,13 @@ function httpMovieBookWormAPI(response, maxPage, queryTermMovie){
 							jsonMovie.marks.critics = contentMovie.movies[i].ratings.critics_score;
 							jsonMovie.marks.audience = contentMovie.movies[i].ratings.audience_score;
 							jsonMovie.directors = new Array();
-							for(var d = 0; d < contentDirector.abridged_directors.length; d++){
-								var director = new Object();
-								director.name = contentDirector.abridged_directors[d];
-								jsonMovie.directories.push(director);
+							console.log('Baggio culo: ' + contentDirector.abridged_directors);
+							if(typeof(contentDirector.abridged_directors) != "undefined"){
+								for(var d = 0; d < contentDirector.abridged_directors.length; d++){
+									var director = new Object();
+									director.name = contentDirector.abridged_directors[d].name;
+									jsonMovie.directors.push(director);
+								}
 							}
 							jsonMovie.poster = contentMovie.movies[i].posters.profile;
 							jsonMovie.books = new Array();
@@ -342,6 +345,7 @@ function httpMovieBookWormAPI(response, maxPage, queryTermMovie){
 							for (var j = 0; j < contentBook.items.length; j++) {
 								var jsonBook = new Object();
 								jsonBook.link = contentBook.items[j].volumeInfo.infoLink;
+								jsonBook.title = contentBook.items[j].volumeInfo.title;
 								jsonMovie.books.push(jsonBook);
 							}
 							jsonRes.push(jsonMovie);
@@ -354,6 +358,8 @@ function httpMovieBookWormAPI(response, maxPage, queryTermMovie){
 							}
 						});
 					});
+					
+					req.end();
 					
 					req.on('error', function(e){
 						console.error(e);
