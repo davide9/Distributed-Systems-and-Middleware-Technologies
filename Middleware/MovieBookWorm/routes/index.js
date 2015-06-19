@@ -24,7 +24,6 @@ function httpMovieBookWormAPI(response, maxPage, queryTermMovie){
 	  'Content-Type': 'application/json'
 	};
 
-
 	var optionsMovie = {
 	host: hostMovie,
 	path: fullRequestQueryMovie,
@@ -43,11 +42,10 @@ function httpMovieBookWormAPI(response, maxPage, queryTermMovie){
 			//console.log(jsonStringResponseMovie); 
 		});
 		var i=0;
-		var countI=0;
 		var jsonRes = new Array();
 		res.on('end', function getBook() {
 			var contentMovie = JSON.parse(jsonStringResponseMovie);
-			if(contentMovie.movies.length == 0) { response.json("{}"); return;}
+			if(contentMovie.movies.length == 0) { response.send('{}'); return;}
 			var queryTermBook = querystring.stringify({q:contentMovie.movies[i].title});
 			
 			console.log('stringify-> '  + queryTermBook);
@@ -59,7 +57,6 @@ function httpMovieBookWormAPI(response, maxPage, queryTermMovie){
 			var headersBook = {
 				'Content-Type': 'application/json'
 			};
-
 
 			var optionsBook = {
 				hostname: hostBook,
@@ -114,7 +111,6 @@ function httpMovieBookWormAPI(response, maxPage, queryTermMovie){
 							jsonMovie.marks.critics = contentMovie.movies[i].ratings.critics_score;
 							jsonMovie.marks.audience = contentMovie.movies[i].ratings.audience_score;
 							jsonMovie.directors = new Array();
-							console.log('Baggio culo: ' + contentDirector.abridged_directors);
 							if(typeof(contentDirector.abridged_directors) != "undefined"){
 								for(var d = 0; d < contentDirector.abridged_directors.length; d++){
 									var director = new Object();
@@ -133,7 +129,6 @@ function httpMovieBookWormAPI(response, maxPage, queryTermMovie){
 								jsonMovie.books.push(jsonBook);
 							}
 							jsonRes.push(jsonMovie);
-							countI++;
 							if(i++ < contentMovie.movies.length-1)
 								getBook();
 							else
@@ -178,7 +173,6 @@ function httpMovieBookWormApp(response, maxPage, queryTermMovie){
 	  'Content-Type': 'application/json'
 	};
 
-
 	var optionsMovie = {
 	host: myHost,
 	port: 3000,
@@ -198,13 +192,16 @@ function httpMovieBookWormApp(response, maxPage, queryTermMovie){
 		});
 		
 		res.on('end', function(){
+			console.log(jsonStringResponse)
+			
 			var webAppData = JSON.parse(jsonStringResponse);
+			console.log(webAppData)
 			if(typeof(webAppData) == "undefined" || jsonStringResponse == '{}'){
 				response.send('No results');
 				return;
 			}
 			
-			var httpResponse = '<h1>Movies</h1><br /><ul>';
+			var httpResponse = '<h1>MoviesBookWorm</h1><br /><ul>';
 			
 			for(var i=0; i<webAppData.length; i++){
 				httpResponse += '<li>';
