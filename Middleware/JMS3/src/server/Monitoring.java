@@ -8,15 +8,9 @@ import java.util.List;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
-import javax.jms.Message;
 import javax.jms.Queue;
 import javax.jms.QueueBrowser;
-import javax.jms.QueueConnection;
-import javax.jms.QueueConnectionFactory;
-import javax.jms.QueueSession;
-import javax.jms.Session;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 import org.jboss.weld.exceptions.IllegalArgumentException;
@@ -177,6 +171,7 @@ public class Monitoring {
 					LoadURL load = new LoadURL();
 					load.start();				
 					listLoadUrl.add(load);
+					System.out.println("component add " + i);
 				}
 				break;
 			case 1:
@@ -184,6 +179,7 @@ public class Monitoring {
 					StorePage store = new StorePage();
 					store.start();				
 					listStorePage.add(store);
+					System.out.println("component add " + i);
 				}
 				break;
 			case 2:
@@ -191,6 +187,7 @@ public class Monitoring {
 					ParsePage parsePage = new ParsePage(); 
 					parsePage.start();
 					listParsePage.add(parsePage);
+					System.out.println("component add " + i);
 				}
 				break;
 			case 3:
@@ -198,6 +195,7 @@ public class Monitoring {
 					DownloadImages download = new DownloadImages();
 					download.start();
 					listDownloadImage.add(download);
+					System.out.println("component add " + i);
 				}
 				break;
 			case 4:
@@ -205,13 +203,14 @@ public class Monitoring {
 					ModifyPage modify = new ModifyPage();
 					modify.start();
 					listModifyPage.add(modify);
+					System.out.println("component add " + i);
 				}
 				break;
 			default:
 				throw new IllegalArgumentException("Paramenter i illegal");
 		}
 		
-		System.out.println("component add " + i);
+		
 
 	}
 }
