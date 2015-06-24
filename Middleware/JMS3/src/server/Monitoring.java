@@ -87,9 +87,7 @@ public class Monitoring {
 					addComponent(i);
 				}
 			}
-			
 		}
-
 	}
 
 	private static void deleteComponent(int i) {

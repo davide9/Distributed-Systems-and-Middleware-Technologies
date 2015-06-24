@@ -110,7 +110,6 @@ public class DownloadImages extends Component implements MessageListener {
 			
 			count++;
 		}
-		
 	    jmsProducer.send(publishQueue, new MessageImageSrcName(listSrc, nameList, endpoint, id, fileName));
 	    busy = false;
 	}
