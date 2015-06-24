@@ -19,7 +19,6 @@ public class TestClient {
 	
 	public static void main(String[] args) throws NamingException, IOException {
 		
-		
 		Context initialContext = JMS_set_up.getContext();
 				
 		Queue publishQueue = (Queue) initialContext.lookup(publishQueueName);
@@ -28,10 +27,11 @@ public class TestClient {
 				
 		JMSProducer jmsProducer = jmsContext.createProducer();
 		
-		String msgToSend = "http://www.cavallibaggio.it/";
+		String msgToSend = "http://www.cavallibaggio.it/cavalli.html";
 		
-		for(int i = 0; i < 1000; i++){
+		for(int i = 0; i < 1; i++){
 			jmsProducer.send(publishQueue, "URL = " + msgToSend );
+			System.out.println(i);
 		}
 	}
 

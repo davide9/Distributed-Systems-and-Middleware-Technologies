@@ -36,6 +36,7 @@ public class StorePage extends Thread implements MessageListener {
 	private Queue subscribeQueue;
 	
 	private boolean test = false;
+	private boolean busy = false;
 		
 	public StorePage() throws NamingException{
 		
@@ -51,6 +52,7 @@ public class StorePage extends Thread implements MessageListener {
 	}
 	
 	public void onMessage(Message msg) {
+		busy = false;
 		
 		String body = null;
 		try {
@@ -112,12 +114,17 @@ public class StorePage extends Thread implements MessageListener {
 			e.printStackTrace();
 		}
    
+		busy = false;
 	}
 	
 	public void run(){
 		while(!this.isInterrupted()){
 			
 		}
+	}
+	
+	public boolean busyState(){
+		return busy;
 	}
 
 	public static void main(String[] args) throws IOException, NamingException {	

@@ -38,7 +38,8 @@ public class ModifyPage extends Thread implements MessageListener {
 	
 	private boolean test = false;
 
-	
+	private boolean busy = false;
+
 	public ModifyPage() throws NamingException{
 		Context initialContext = JMS_set_up.getContext();
 
@@ -49,6 +50,8 @@ public class ModifyPage extends Thread implements MessageListener {
 	}
 	
 	public void onMessage(Message msg) {
+		busy = true;
+		
 		MessageImageSrcName mess = null;
 		try {
 			mess = msg.getBody(MessageImageSrcName.class);
@@ -121,12 +124,18 @@ public class ModifyPage extends Thread implements MessageListener {
 			e.printStackTrace();
 			return;
 		}
+		
+		busy = false;
 	}
 	
 	public void run(){
 		while(!this.isInterrupted()){
 			
 		}
+	}
+	
+	public boolean busyState(){
+		return busy;
 	}
 	
 	public static void main(String[] args) throws NamingException {

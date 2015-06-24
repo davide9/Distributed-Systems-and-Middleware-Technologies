@@ -37,6 +37,7 @@ public class DownloadImages extends Thread implements MessageListener {
 	
 	private boolean test = false;
 
+	private boolean busy = false;
 	
 	public DownloadImages() throws NamingException{
 		
@@ -52,6 +53,7 @@ public class DownloadImages extends Thread implements MessageListener {
 	}
 
 	public void onMessage(Message msg) {
+		busy = true;
 		MessageImageList mess = null;
 		try {
 			mess = msg.getBody(MessageImageList.class);
@@ -90,7 +92,9 @@ public class DownloadImages extends Thread implements MessageListener {
 			    nameList.add(file.getName());
 			} catch (IOException e) {
 				e.printStackTrace();
-				return;
+				System.out.println(src);
+				nameList.add(src);
+				continue;
 			}
 	    	
 			try {
@@ -106,12 +110,17 @@ public class DownloadImages extends Thread implements MessageListener {
 		}
 		
 	    jmsProducer.send(publishQueue, new MessageImageSrcName(listSrc, nameList, endpoint, id, fileName));
+	    busy = false;
 	}
 	
 	public void run(){
 		while(!this.isInterrupted()){
 			
 		}
+	}
+	
+	public boolean busyState(){
+		return busy;
 	}
 
 	public static void main(String[] args) throws IOException, NamingException {

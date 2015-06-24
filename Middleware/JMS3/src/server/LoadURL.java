@@ -1,12 +1,8 @@
 package server;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Properties;
-
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
@@ -15,7 +11,6 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.Queue;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 import common.JMS_set_up;
@@ -31,6 +26,7 @@ public class LoadURL extends Thread implements MessageListener {
 	private Queue subscribeQueue;
 	
 	private boolean test = false;
+	private boolean busy = false;
 	
 	public LoadURL() throws NamingException, IOException{
 		
@@ -46,6 +42,8 @@ public class LoadURL extends Thread implements MessageListener {
 	}
 
 	public void onMessage(Message msg) {
+		busy = true;
+		
 		String body = null;
 		try {
 			body = (String) msg.getBody(String.class);
@@ -72,12 +70,18 @@ public class LoadURL extends Thread implements MessageListener {
 		else{
 			System.out.println("Message not valid");
 		}
+		
+		busy = false;
 	}
 	
 	public void run(){
 		while(!this.isInterrupted()){
 			
 		}
+	}
+	
+	public boolean busyState(){
+		return busy;
 	}
 	
 	public static void main(String[] args) throws IOException, NamingException {

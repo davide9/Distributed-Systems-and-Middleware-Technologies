@@ -38,6 +38,7 @@ public class ParsePage extends Thread implements MessageListener{
 	private Queue subscribeQueue;
 	
 	private boolean test = false;
+	private boolean busy = false;
 
 	
 	public ParsePage() throws NamingException{
@@ -55,7 +56,7 @@ public class ParsePage extends Thread implements MessageListener{
 	
 	
 	public void onMessage(Message msg) {
-		
+		busy = true;
 		//reading message
 		
 		MessageNameKey mess = null;
@@ -63,6 +64,7 @@ public class ParsePage extends Thread implements MessageListener{
 			mess = msg.getBody(MessageNameKey.class);
 		} catch (JMSException e) {
 			e.printStackTrace();
+			return;
 		}
 		String endpoint = mess.getEndpoint();
 		String id = mess.getId();
@@ -105,7 +107,7 @@ public class ParsePage extends Thread implements MessageListener{
 		}
 		
 		jmsProducer.send(publishQueue, new MessageImageList(imgSource, endpoint, id, fileName));
-
+		busy = false;
 		
 	}
 	
@@ -113,6 +115,10 @@ public class ParsePage extends Thread implements MessageListener{
 		while(!this.isInterrupted()){
 			
 		}
+	}
+	
+	public boolean busyState(){
+		return busy ;
 	}
 	
 	public static void main(String[] args) throws IOException, NamingException {

@@ -81,15 +81,15 @@ public class Monitoring {
         int numMsgs;
 
 		while(true){
-			Thread.sleep(5000); //perform the control every 5 seconds
-			for (int i = 1; i < browswers.length; i++) {	//start from 1 because 0 is the queue of client-server
+			Thread.sleep(10000); //perform the control every 5 seconds
+			for (int i = 0; i < browswers.length; i++) {	//start from 1 because 0 is the queue of client-server
 				numMsgs = 0;
 				e = browswers[i].getEnumeration();
 				while (e.hasMoreElements()) {
 		            e.nextElement();
 		            numMsgs++;
 		        }
-				System.out.println("in queue " + i + " ci sono " + numMsgs);
+				System.out.println("in queue " + i + " ci sono " + numMsgs + " mess");
 				if(numMsgs == 0){
 					deleteComponent(i);
 					
@@ -104,48 +104,64 @@ public class Monitoring {
 
 	private static void deleteComponent(int i) {
 		switch (i) {
-			case 1:
-				if(listStorePage.size() > 1){
-					int last = listStorePage.size()-1;
-					listStorePage.get(last).interrupt();
-					listStorePage.remove(last);
-					System.out.println("component removed");
+			case 0:
+				if(listLoadUrl.size() > 1){
+					if(!listLoadUrl.get(0).busyState()){
+						listLoadUrl.get(0).interrupt();
+						listLoadUrl.remove(0);
+						System.out.println("component rimosso");
+					}
 				}
 				else{
-					System.out.println("impossible to remove component " + i);
+					System.out.println("impossibile rimuovere component " + i);
+				}
+				break;
+			case 1:
+				if(listStorePage.size() > 1){
+					if(!listStorePage.get(0).busyState()){
+						listStorePage.get(0).interrupt();
+						listStorePage.remove(0);
+						System.out.println("component rimosso");
+					}
+				}
+				else{
+					System.out.println("impossibile rimuovere component " + i);
 				}
 				break;
 			case 2:
 				if(listParsePage.size() > 1){
-					int last = listParsePage.size()-1;
-					listParsePage.get(last).interrupt();
-					listParsePage.remove(last);
-					System.out.println("component removed");
+					if(!listParsePage.get(0).busyState()){
+						listParsePage.get(0).interrupt();
+						listParsePage.remove(0);
+						System.out.println("component rimosso");
+					}
 				}
 				else{
-					System.out.println("impossible to remove component  " + i);
+					System.out.println("impossibile rimuovere component  " + i);
 				}
 				break;
 			case 3:
 				if(listDownloadImage.size() > 1){
-					int last = listDownloadImage.size()-1;
-					listDownloadImage.get(last).interrupt();
-					listDownloadImage.remove(last);
-					System.out.println("component removed");
+					if(!listDownloadImage.get(0).busyState()){
+						listDownloadImage.get(0).interrupt();
+						listDownloadImage.remove(0);
+						System.out.println("component rimosso");
+					}
 				}
 				else{
-					System.out.println("impossible to remove component " + i );
+					System.out.println("impossibile rimuovere component " + i );
 				}
 				break;
 			case 4:
 				if(listModifyPage.size() > 1){
-					int last = listModifyPage.size()-1;
-					listModifyPage.get(last).interrupt();
-					listModifyPage.remove(last);
-					System.out.println("component removed");
+					if(!listModifyPage.get(0).busyState()){
+						listModifyPage.get(0).interrupt();
+						listModifyPage.remove(0);
+						System.out.println("component rimosso");
+					}
 				}
 				else{
-					System.out.println("impossible to remove component " + i);
+					System.out.println("impossibile rimuovere component " + i);
 				}
 				break;
 	
@@ -154,8 +170,15 @@ public class Monitoring {
 		}
 	}
 	
-	private static void addComponent(int i) throws NamingException {
+	private static void addComponent(int i) throws NamingException, IOException {
 		switch (i) {
+			case 0:
+				if(listLoadUrl.size() < numMaxComponent){
+					LoadURL load = new LoadURL();
+					load.start();				
+					listLoadUrl.add(load);
+				}
+				break;
 			case 1:
 				if(listStorePage.size() < numMaxComponent){
 					StorePage store = new StorePage();
