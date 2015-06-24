@@ -26,7 +26,7 @@ import common.JMS_set_up;
 import messages.MessageImageList;
 import messages.MessageNameKey;
 
-public class ParsePage extends Thread implements MessageListener{
+public class ParsePage extends Component implements MessageListener{
 
 	private static String publishQueueName = "Queue3-4";
 	private static String subscribeQueueName = "Queue2-3";
@@ -49,8 +49,9 @@ public class ParsePage extends Thread implements MessageListener{
 		publishQueue = (Queue) initialContext.lookup(publishQueueName);
 		
 		JMSContext jmsContext = ((ConnectionFactory) initialContext.lookup("java:comp/DefaultJMSConnectionFactory")).createContext();
-		jmsContext.createConsumer(subscribeQueue).setMessageListener(this);
-
+		myConsumer = jmsContext.createConsumer(subscribeQueue);
+		myConsumer.setMessageListener(this);
+		
 		jmsProducer = jmsContext.createProducer();
 	}
 	
@@ -109,16 +110,6 @@ public class ParsePage extends Thread implements MessageListener{
 		jmsProducer.send(publishQueue, new MessageImageList(imgSource, endpoint, id, fileName));
 		busy = false;
 		
-	}
-	
-	public void run(){
-		while(!this.isInterrupted()){
-			
-		}
-	}
-	
-	public boolean busyState(){
-		return busy ;
 	}
 	
 	public static void main(String[] args) throws IOException, NamingException {

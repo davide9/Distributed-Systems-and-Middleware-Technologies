@@ -15,7 +15,7 @@ import javax.naming.NamingException;
 
 import common.JMS_set_up;
 
-public class LoadURL extends Thread implements MessageListener {
+public class LoadURL extends Component implements MessageListener {
 
 	private static String publishQueueName = "Queue1-2";
 	private static String subscribeQueueName = "Queue-Client_Server";
@@ -37,7 +37,9 @@ public class LoadURL extends Thread implements MessageListener {
 
 		
 		JMSContext jmsContext = ((ConnectionFactory) initialContext.lookup("java:comp/DefaultJMSConnectionFactory")).createContext();
-		jmsContext.createConsumer(subscribeQueue).setMessageListener(this);
+		myConsumer = jmsContext.createConsumer(subscribeQueue);
+		myConsumer.setMessageListener(this);
+		
 		jmsProducer = jmsContext.createProducer();		
 	}
 
@@ -72,16 +74,6 @@ public class LoadURL extends Thread implements MessageListener {
 		}
 		
 		busy = false;
-	}
-	
-	public void run(){
-		while(!this.isInterrupted()){
-			
-		}
-	}
-	
-	public boolean busyState(){
-		return busy;
 	}
 	
 	public static void main(String[] args) throws IOException, NamingException {

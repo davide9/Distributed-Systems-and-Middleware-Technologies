@@ -1,9 +1,6 @@
 package client;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
@@ -27,9 +24,9 @@ public class TestClient {
 				
 		JMSProducer jmsProducer = jmsContext.createProducer();
 		
-		String msgToSend = "http://www.cavallibaggio.it/cavalli.html";
+		String msgToSend = "http://www.cavallibaggio.it/";
 		
-		for(int i = 0; i < 1; i++){
+		for(int i = 0; i < 25; i++){
 			jmsProducer.send(publishQueue, "URL = " + msgToSend );
 			System.out.println(i);
 		}

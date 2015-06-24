@@ -30,7 +30,7 @@ import messages.MessageImageSrcName;
 import common.Download;
 import common.JMS_set_up;
 
-public class ModifyPage extends Thread implements MessageListener {
+public class ModifyPage extends Component implements MessageListener {
 
 	private static String subscribeQueueName = "Queue4-5";
 		
@@ -38,15 +38,14 @@ public class ModifyPage extends Thread implements MessageListener {
 	
 	private boolean test = false;
 
-	private boolean busy = false;
-
 	public ModifyPage() throws NamingException{
 		Context initialContext = JMS_set_up.getContext();
 
 		subscribeQueue = (Queue) initialContext.lookup(subscribeQueueName);
 		
 		JMSContext jmsContext = ((ConnectionFactory) initialContext.lookup("java:comp/DefaultJMSConnectionFactory")).createContext();
-		jmsContext.createConsumer(subscribeQueue).setMessageListener(this);
+		myConsumer = jmsContext.createConsumer(subscribeQueue);
+		myConsumer.setMessageListener(this);
 	}
 	
 	public void onMessage(Message msg) {
@@ -126,16 +125,6 @@ public class ModifyPage extends Thread implements MessageListener {
 		}
 		
 		busy = false;
-	}
-	
-	public void run(){
-		while(!this.isInterrupted()){
-			
-		}
-	}
-	
-	public boolean busyState(){
-		return busy;
 	}
 	
 	public static void main(String[] args) throws NamingException {

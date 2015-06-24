@@ -25,7 +25,7 @@ import com.smartfile.api.SmartFileException;
 
 import common.JMS_set_up;
 
-public class DownloadImages extends Thread implements MessageListener {
+public class DownloadImages extends Component implements MessageListener {
 
 	private static String publishQueueName = "Queue4-5";
 	private static String subscribeQueueName = "Queue3-4";
@@ -47,7 +47,9 @@ public class DownloadImages extends Thread implements MessageListener {
 		publishQueue = (Queue) initialContext.lookup(publishQueueName);
 		
 		JMSContext jmsContext = ((ConnectionFactory) initialContext.lookup("java:comp/DefaultJMSConnectionFactory")).createContext();
-		jmsContext.createConsumer(subscribeQueue).setMessageListener(this);
+		
+		myConsumer = jmsContext.createConsumer(subscribeQueue);
+		myConsumer.setMessageListener(this);
 
 		jmsProducer = jmsContext.createProducer();
 	}
@@ -113,16 +115,6 @@ public class DownloadImages extends Thread implements MessageListener {
 	    busy = false;
 	}
 	
-	public void run(){
-		while(!this.isInterrupted()){
-			
-		}
-	}
-	
-	public boolean busyState(){
-		return busy;
-	}
-
 	public static void main(String[] args) throws IOException, NamingException {
 		
 		DownloadImages chat = new DownloadImages();

@@ -38,23 +38,18 @@ public class Monitoring {
 		listModifyPage = new ArrayList<ModifyPage>();
 		
 		LoadURL load = new LoadURL();
-		load.start();
 		listLoadUrl.add(load);
 		
 		StorePage store = new StorePage();
-		store.start();				
 		listStorePage.add(store);
 
 		ParsePage parsePage = new ParsePage(); 
-		parsePage.start();
 		listParsePage.add(parsePage);
 
 		DownloadImages download = new DownloadImages();
-		download.start();
 		listDownloadImage.add(download);
 		
 		ModifyPage modify = new ModifyPage();
-		modify.start();
 		listModifyPage.add(modify);
 		
 		//monitoring
@@ -75,8 +70,9 @@ public class Monitoring {
         int numMsgs;
 
 		while(true){
-			Thread.sleep(10000); //perform the control every 5 seconds
-			for (int i = 0; i < browswers.length; i++) {	//start from 1 because 0 is the queue of client-server
+			Thread.sleep(10000); //perform the control every X seconds
+			System.out.println("****************************************************************");
+			for (int i = 0; i < browswers.length; i++) {	
 				numMsgs = 0;
 				e = browswers[i].getEnumeration();
 				while (e.hasMoreElements()) {
@@ -101,7 +97,7 @@ public class Monitoring {
 			case 0:
 				if(listLoadUrl.size() > 1){
 					if(!listLoadUrl.get(0).busyState()){
-						listLoadUrl.get(0).interrupt();
+						listLoadUrl.get(0).delete();
 						listLoadUrl.remove(0);
 						System.out.println("component rimosso");
 					}
@@ -113,7 +109,7 @@ public class Monitoring {
 			case 1:
 				if(listStorePage.size() > 1){
 					if(!listStorePage.get(0).busyState()){
-						listStorePage.get(0).interrupt();
+						listStorePage.get(0).delete();
 						listStorePage.remove(0);
 						System.out.println("component rimosso");
 					}
@@ -125,7 +121,7 @@ public class Monitoring {
 			case 2:
 				if(listParsePage.size() > 1){
 					if(!listParsePage.get(0).busyState()){
-						listParsePage.get(0).interrupt();
+						listParsePage.get(0).delete();
 						listParsePage.remove(0);
 						System.out.println("component rimosso");
 					}
@@ -137,7 +133,7 @@ public class Monitoring {
 			case 3:
 				if(listDownloadImage.size() > 1){
 					if(!listDownloadImage.get(0).busyState()){
-						listDownloadImage.get(0).interrupt();
+						listDownloadImage.get(0).delete();
 						listDownloadImage.remove(0);
 						System.out.println("component rimosso");
 					}
@@ -149,7 +145,7 @@ public class Monitoring {
 			case 4:
 				if(listModifyPage.size() > 1){
 					if(!listModifyPage.get(0).busyState()){
-						listModifyPage.get(0).interrupt();
+						listModifyPage.get(0).delete();
 						listModifyPage.remove(0);
 						System.out.println("component rimosso");
 					}
@@ -169,7 +165,6 @@ public class Monitoring {
 			case 0:
 				if(listLoadUrl.size() < numMaxComponent){
 					LoadURL load = new LoadURL();
-					load.start();				
 					listLoadUrl.add(load);
 					System.out.println("component add " + i);
 				}
@@ -177,7 +172,6 @@ public class Monitoring {
 			case 1:
 				if(listStorePage.size() < numMaxComponent){
 					StorePage store = new StorePage();
-					store.start();				
 					listStorePage.add(store);
 					System.out.println("component add " + i);
 				}
@@ -185,7 +179,6 @@ public class Monitoring {
 			case 2:
 				if(listParsePage.size() < numMaxComponent){
 					ParsePage parsePage = new ParsePage(); 
-					parsePage.start();
 					listParsePage.add(parsePage);
 					System.out.println("component add " + i);
 				}
@@ -193,7 +186,6 @@ public class Monitoring {
 			case 3:
 				if(listDownloadImage.size() < numMaxComponent){
 					DownloadImages download = new DownloadImages();
-					download.start();
 					listDownloadImage.add(download);
 					System.out.println("component add " + i);
 				}
@@ -201,7 +193,6 @@ public class Monitoring {
 			case 4:
 				if(listModifyPage.size() < numMaxComponent){
 					ModifyPage modify = new ModifyPage();
-					modify.start();
 					listModifyPage.add(modify);
 					System.out.println("component add " + i);
 				}
